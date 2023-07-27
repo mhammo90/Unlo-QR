@@ -9,7 +9,7 @@ class Task {
 		this.taskPoints = taskPoints;
 		this.qrCode = qrCode;
 	}
-	/* createQR() {
+	createQR() {
 		return new Promise((resolve, reject) => {
 			const data = `{"taskName":${this.taskName},"taskPoints":${this.taskPoints}}`;
 			const options = {
@@ -32,7 +32,7 @@ class Task {
 			return;
 		}
 		return this.qrCode;
-	} */
+	}
 }
 
 module.exports = Task;
