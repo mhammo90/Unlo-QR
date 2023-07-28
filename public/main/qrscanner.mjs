@@ -12,39 +12,39 @@ function supported() {
 	}
 }
 
-function completeTask(taskQRString) {
+async function postRequest(data) {
 	try {
-		const { taskName, taskPoints } = JSON.parse(taskQRString);
+		const response = await fetch("/complete", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(data),
+		});
+		if (!response.ok) {
+			alert("Network Response NOT OK");
+		}
+
+		const respData = await response.json();
+		alert(respData.message);
+	} catch (error) {
+		alert(error);
+	}
+}
+
+async function completeTask(taskQRString) {
+	try {
+		const { taskName, taskPoints } = await JSON.parse(taskQRString);
 		const data = {
+			taskName,
 			taskPoints,
 		};
-		const check = confirm("Complete ", taskName, " for ", taskPoints, " ?");
+		const check = confirm(`Complete ${taskName} for ${taskPoints} points?`);
 		if (check) {
-			fetch("/complete", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(data),
-			})
-				.then((response) => {
-					if (!response.ok) {
-						alert("Network Response NOT OK");
-					}
-					alert(response.json());
-				})
-				.then((data) => {
-					alert("Task completed successfully!", data);
-				})
-				.catch((error) => {
-					// Handle errors
-					alert("Error completing task:", error);
-				});
-		} else {
-			return;
+			const post = await postRequest(data);
 		}
 	} catch (error) {
-		alert("Invalid JSON input:", error);
+		console.errror(error);
 	}
 }
 
@@ -52,7 +52,7 @@ const qrScanner = new QrScanner(
 	qrVideo,
 	(result) => {
 		qrScanner.stop();
-		completeTask(result);
+		completeTask(result.data);
 	},
 	{ preferredCamera: "environment" }
 );
