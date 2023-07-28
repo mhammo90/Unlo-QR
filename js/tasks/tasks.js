@@ -13,11 +13,14 @@ function getTaskIDs() {
 	return taskIds;
 }
 
-// GET TASK AS OBJECT FROM ID - returns Task OBJECT //
-function getTask(taskID) {
-	const file = require(`${taskDataLoc}/${taskID}.json`);
-	var task = new Task(file.id, file.taskName, file.taskPoints, file.qrCode);
-	return task;
+// GET ALL TASK NAMES - returns ARRAY //
+function getTaskNames() {
+	const taskNames = [];
+	const ids = getTaskIDs();
+	ids.forEach((id) => {
+		var task = importTask(id);
+		taskNames.push(task);
+	});
 }
 
 // GET ALL TASKS AS OBJECTS AND RETURN THEM AS AN ARRAY - returns ARRAY//
@@ -25,11 +28,22 @@ function getAllTasks() {
 	tasksArr = [];
 	var tasks = getTaskIDs();
 	tasks.forEach((task) => {
-		var info = getTask(task);
+		var info = importTask(task);
 		tasksArr.push(info);
 	});
 	return tasksArr;
 }
 
+// GET POINTS OF TASK - returns INTEGER //
+function getTaskPoints(taskID) {
+	return importTask(taskID).taskPoints;
+}
+
+// SHOW TASK QR CODE - returns QRCODE base64 STRING //
+function showTaskQR(taskID) {
+	const task = importTask(taskID);
+	return task.showQR();
+}
+
 // EXPORT getTaskIDs(), getTask(), getAllTasks() //
-module.exports = { getTaskIDs, getTask, getAllTasks };
+module.exports = { getTaskIDs, getTaskNames, getAllTasks, getTaskPoints, showTaskQR };
