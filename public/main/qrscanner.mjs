@@ -42,6 +42,8 @@ async function completeTask(taskQRString) {
 		const check = confirm(`Complete ${taskName} for ${taskPoints} points?`);
 		if (check) {
 			const post = await postRequest(data);
+			const lastTask = JSON.stringify(data);
+			window.localStorage.setItem("lastTask", lastTask);
 		}
 	} catch (error) {
 		console.errror(error);
