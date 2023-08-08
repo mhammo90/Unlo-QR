@@ -1,13 +1,14 @@
 // REQUIRES AND IMPORTS //
 const fs = require("fs");
+const path = require("path");
 const { childDataLoc, updateChild, importChild } = require(relPath("./js/admin/childAdmin"));
 
 // SET status TO "unblocked" (0) OR "blocked" (1) //
-function setStatus(cName, status) {
+async function setStatus(cName, status) {
 	if (status === 0) {
-		updateChild(cName, "status", "unblocked");
+		await updateChild(cName, "status", "unblocked");
 	} else if (status === 1) {
-		updateChild(cName, "status", "blocked");
+		await updateChild(cName, "status", "blocked");
 	} else {
 		console.error("Unknown Status");
 		return;
@@ -15,20 +16,20 @@ function setStatus(cName, status) {
 }
 
 // SET unblockTime AS now AND blockTime FROM refreshInterval //
-function setTimes(cName) {
+async function setTimes(cName) {
 	var date = new Date();
 	var unblockTime = date.getTime();
-	var child = importChild(cName);
-	updateChild(cName, "unblockTime", unblockTime);
+	var child = await importChild(cName);
+	await updateChild(cName, "unblockTime", unblockTime);
 	var interval = child.refreshInterval;
 	var millis = interval * 3600 * 1000;
 	var blockTime = unblockTime + millis;
-	updateChild(cName, "blockTime", blockTime);
+	await updateChild(cName, "blockTime", blockTime);
 }
 
 // GET BLOCK TIME (FORMAT: 0 == Date String, 1 == Enoch Milliseconds) //
-function getBlockTime(cName, format) {
-	var blockTime = importChild(cName.blockTime);
+async function getBlockTime(cName, format) {
+	var blockTime = await importChild(cName.blockTime);
 	if (format === 0) {
 		return blockTime;
 	} else if (format === 1) {
@@ -38,15 +39,16 @@ function getBlockTime(cName, format) {
 }
 
 // GET STATUS //
-function getStatus(cName) {
-	var status = importChild(cName).status;
-	return child.status;
+async function getStatus(cName) {
+	var status = await importChild(cName).status;
+	return status;
 }
 
 // CHECK WHETHER INTERVAL EXCEEDED (returns TRUE / FALSE) //
-function checkBlockInterval(cName) {
-	if (getStatus(cName) === "unblocked") {
-		getBlockTime(cName, 1);
+async function checkBlockInterval(cName) {
+	var status = await getStatus(cName);
+	if (status === "unblocked") {
+		var block = await getBlockTime(cName, 1);
 		var now = Date.now();
 		if (now < block) {
 			return false;
@@ -61,68 +63,70 @@ function checkBlockInterval(cName) {
 }
 
 // GET CHILD IP //
-function getIP(cName) {
-	var ip = importChild(cName).ip;
+async function getIP(cName) {
+	var ip = await importChild(cName).ip;
 	return ip;
 }
 
 // GET ALL CHILD NAMES //
-function getAllChildNames() {
-	const children = [];
-	const files = fs.readdirSync(childDataLoc);
-	files.forEach((file) => {
-		var name = file.slice(0, -5);
-		children.push(name);
-	});
-	return children;
+async function getAllChildNames() {
+	try {
+		const children = await fs.promises.readdir(childDataLoc);
+		return children.map((child) => child.slice(0, -5));
+	} catch (error) {
+		console.error(`An Error Occured: ${error}`);
+		return [];
+	}
 }
+
 // WHO IP - returns NAME of IP owner
-function whoIP(ip) {
-	var names = getAllChildNames();
-	names.forEach((child) => {
-		let obj = importChild(child);
-		var childIP = child.ip;
-		if (childIP === ip) {
-			return child;
+async function whoIP(ip) {
+	var names = await getAllChildNames();
+	for (const name of names) {
+		const child = await importChild(name);
+		if (child && child.ip === ip) {
+			return name;
 		}
-	});
+	}
+	return null;
 }
+
 // COMPLETE TASK //
-function completeTask(cName, points) {
-	addPoints(cName, points);
+async function completeTask(cName, points) {
+	await addPoints(cName, points);
 }
 
 // GET CURRENT POINTS//
-function getPoints(cName) {
-	var curr = importChild(cName).currentPoints;
+async function getPoints(cName) {
+	var curr = await importChild(cName).currentPoints;
 	return curr;
 }
 // GET MAX POINTS //
-function getMax(cName) {
-	var max = importChild(cName).maxPoints;
+async function getMax(cName) {
+	var max = await importChild(cName).maxPoints;
 	return max;
 }
 // SET CURRENT POINTS //
-function setPoints(cName, points) {
-	updateChild(cName, "currentPoints", points);
+async function setPoints(cName, points) {
+	await updateChild(cName, "currentPoints", points);
 }
 
 // SET POINTS TO 0 //
-function refreshPoints(cName) {
-	setPoints(cName, 0);
+async function refreshPoints(cName) {
+	await setPoints(cName, 0);
 }
 
 // ADD POINTS //
-function addPoints(cName, points) {
-	var curr = getPoints(cName);
+async function addPoints(cName, points) {
+	var curr = await getPoints(cName);
 	var newP = curr + points;
-	setPoints(cName, newP);
+	await setPoints(cName, newP);
 }
 
 // POINTS CHECK - IF CURRENT > MAX = TRUE
-function pointsCheck(cName) {
-	var current = getPoints(cName);
-	var max = getMax(cName);
+async function pointsCheck(cName) {
+	var current = await getPoints(cName);
+	var max = await getMax(cName);
 	if (current >= max) {
 		return true;
 	} else {
