@@ -5,22 +5,22 @@ const { getAllTasks, showTaskQR } = require(relPath("./js/tasks/tasks.js"));
 const { importTask } = require(relPath("./js/admin/tasksAdmin"));
 
 // RETURN ALL TASKS (JSON) //
-router.get("/", (req, res) => {
-	const tasks = getAllTasks();
+router.get("/", async (req, res) => {
+	const tasks = await getAllTasks();
 	res.json(tasks);
 });
 
 // RETURN SINGLE TASK (JSON) //
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
 	var id = req.params.id;
-	const task = importTask(id);
+	const task = await importTask(id);
 	res.json(task);
 });
 
 // RETURN QR WITH <IMG> TAGS //
-router.get("/:id/qr", (req, res) => {
+router.get("/:id/qr", async (req, res) => {
 	var id = req.params.id;
-	const qr = showTaskQR(id);
+	const qr = await showTaskQR(id);
 	res.send(`<img src="${qr}"></img>`);
 });
 
