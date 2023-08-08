@@ -1,8 +1,7 @@
 // REQUIRES AND IMPORTS //
-const { getIP, setStatus, setTimes, getStatus, checkBlockInterval, getAllChildNames } = require(relPath(
-	"./js/children/child.js"
+const { getIP, setStatus, setTimes, getStatus, checkBlockInterval, getAllChildNames, refreshPoints } = require(relPath(
+	"./js/children/helper"
 ));
-const { refreshPoints } = require(relPath("./js/children/points.js"));
 const ipTables = require("iptables");
 
 // RETURN ALL TRAFFIC RULE FOR SPECIFIC IP OR && PORT //
@@ -84,7 +83,7 @@ function intialiseFirewall() {
 	);
 }
 
-// SPECIFIC FIREWALL RULES FOR CHILD //
+// BLOCK CHILD //
 function blockChild(cName) {
 	const childIP = getIP(cName);
 	// REDIRECT HTTP TCP traffic from port 80 to USER_PORT //
@@ -116,7 +115,7 @@ function blockChild(cName) {
 	// NOTIFY ALERT //
 	notifyAlert(`${cName} blocked SUCCESSFULLY`);
 }
-
+// UNBLOCK CHILD //
 function unblockChild(cName) {
 	const childIP = getIP(cName);
 	// REMOVE HTTP TCP REDIRECT //
