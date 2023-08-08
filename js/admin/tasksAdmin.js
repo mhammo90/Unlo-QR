@@ -6,7 +6,7 @@ var taskDataLoc = relPath(process.env.TASK_DATA) || relPath("./data/tasks");
 // IMPORT TASK AS OBJECT //
 function importTask(taskID) {
 	var task = require(`${taskDataLoc}/${taskID}.json`);
-	var taskObj = new Task(task.id, task.taskName, task.taskPoints, qrCode);
+	var taskObj = new Task(task.id, task.taskName, task.taskPoints, task.qrCode);
 	return taskObj;
 }
 
