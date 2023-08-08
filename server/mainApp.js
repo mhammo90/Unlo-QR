@@ -5,7 +5,6 @@ const bodyParser = require("body-parser");
 
 // ROUTES FILES //
 const mainRoutes = require(relPath("./routes/main/mainRoutes"));
-const addRoutes = require(relPath("./routes/main/addRoutes"));
 
 // SET EJS AND PAGES FOLDER //
 mainApp.set("views", relPath("./pages/main"));
@@ -19,9 +18,10 @@ mainApp.use(express.urlencoded({ extended: true }));
 mainApp.use(bodyParser.urlencoded({ extended: false }));
 mainApp.use(bodyParser.json());
 
+//mainApp.use(express.json);
+
 // SET ROUTES //
 mainApp.use("/", mainRoutes);
-//mainApp.use("/add", addRoutes);
 
 // EXPORT mainAPP //
 module.exports = mainApp;
