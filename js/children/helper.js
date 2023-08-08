@@ -79,16 +79,55 @@ function getAllChildNames() {
 // WHO IP - returns NAME of IP owner
 function whoIP(ip) {
 	var names = getAllChildNames();
-	console.log(names);
-	var out = [];
 	names.forEach((child) => {
 		let obj = importChild(child);
-		console.log(child);
 		var childIP = child.ip;
 		if (childIP === ip) {
 			return child;
 		}
 	});
+}
+// COMPLETE TASK //
+function completeTask(cName, points) {
+	addPoints(cName, points);
+}
+
+// GET CURRENT POINTS//
+function getPoints(cName) {
+	var curr = importChild(cName).currentPoints;
+	return curr;
+}
+// GET MAX POINTS //
+function getMax(cName) {
+	var max = importChild(cName).maxPoints;
+	return max;
+}
+// SET CURRENT POINTS //
+function setPoints(cName, points) {
+	updateChild(cName, "currentPoints", points);
+}
+
+// SET POINTS TO 0 //
+function refreshPoints(cName) {
+	setPoints(cName, 0);
+}
+
+// ADD POINTS //
+function addPoints(cName, points) {
+	var curr = getPoints(cName);
+	var newP = curr + points;
+	setPoints(cName, newP);
+}
+
+// POINTS CHECK - IF CURRENT > MAX = TRUE
+function pointsCheck(cName) {
+	var current = getPoints(cName);
+	var max = getMax(cName);
+	if (current >= max) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 module.exports = {
@@ -100,4 +139,11 @@ module.exports = {
 	getIP,
 	getAllChildNames,
 	whoIP,
+	completeTask,
+	addPoints,
+	pointsCheck,
+	getPoints,
+	getMax,
+	setPoints,
+	refreshPoints,
 };
