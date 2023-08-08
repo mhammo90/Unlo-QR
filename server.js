@@ -1,6 +1,7 @@
 // IMPORTS AND REQUIRES //
 require("dotenv").config();
 const express = require("express");
+const { intialiseFirewall } = require("./js/admin/gatewayAdmin");
 
 // RELATIVE PATH TO ABSOLUTE PATH //
 const path = require("path");
@@ -12,6 +13,23 @@ function relPath(rel) {
 	return abs;
 }
 global.relPath = relPath;
+
+// NOTIFCATION FUNCTION //
+function notifyAlert(message, title) {
+	// CONSOLE LOG //
+	console.log(message);
+	// IF NTFY_URL .ENV VAR SET //
+	if (process.env.NTFY_URL) {
+		fetch(process.env.NTFY_URL, {
+			method: "POST",
+			body: message,
+			headers: {
+				Title: title,
+			},
+		});
+	}
+}
+global.notifyAlert = notifyAlert;
 
 // PORTS SET BY .env or MANUALLY
 const adminPort = process.env.ADMIN_PORT || 8081;
@@ -32,3 +50,5 @@ const adminApp = require(relPath("./server/adminApp"));
 adminApp.listen(adminPort, () => {
 	console.log("Admin Appication running on port " + adminPort);
 });
+
+//intialiseFirewall()
