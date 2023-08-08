@@ -7,6 +7,7 @@ const Child = require(relPath("./js/classes/Child"));
 // DATA LOCATION //
 const childDataLoc = relPath(process.env.CHILD_DATA) || relPath("./data/children");
 
+// IMPORT CHILD (ASYNC) //
 async function importChild(cName) {
 	var name = cName.charAt(0).toUpperCase() + cName.slice(1);
 	var filePath = path.join(childDataLoc, `${name}.json`);
@@ -29,6 +30,7 @@ async function importChild(cName) {
 	}
 }
 
+// UPDATE CHILD (ASYNC) //
 async function updateChild(cName, key, value) {
 	var name = cName.charAt(0).toUpperCase() + cName.slice(1);
 	var filePath = path.join(childDataLoc, `${name}.json`);
