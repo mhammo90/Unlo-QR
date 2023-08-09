@@ -79,6 +79,16 @@ async function getAllChildNames() {
 	}
 }
 
+// GET ALL CHILDREN //
+async function getAllChildren() {
+	try {
+		const children = await getAllChildNames();
+		return children.map((child) => importChild(child));
+	} catch (error) {
+		console.error(`An Error Occured: ${error}`);
+	}
+}
+
 // WHO IP - returns NAME of IP owner
 async function whoIP(ip) {
 	var names = await getAllChildNames();
@@ -150,4 +160,5 @@ module.exports = {
 	getMax,
 	setPoints,
 	refreshPoints,
+	getAllChildren,
 };

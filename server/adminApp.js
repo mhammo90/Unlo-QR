@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const adminRoutes = require(relPath("./routes/admin/adminRoutes"));
 const createRoutes = require(relPath("./routes/admin/createRoutes"));
 const taskRoutes = require(relPath("./routes/admin/taskRoutes"));
+const childRoutes = require(relPath("./routes/admin/childRoutes"));
 
 // SET EJS AND PAGES FOLDER //
 adminApp.set("views", relPath("./pages/admin"));
@@ -24,6 +25,7 @@ adminApp.use(bodyParser.json());
 adminApp.use("/", adminRoutes);
 adminApp.use("/create", createRoutes);
 adminApp.use("/task", taskRoutes);
+adminApp.use("/child", childRoutes);
 
 // EXPORT adminApp //
 module.exports = adminApp;
