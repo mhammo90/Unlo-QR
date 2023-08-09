@@ -15,12 +15,12 @@ function relPath(rel) {
 global.relPath = relPath;
 
 // NOTIFCATION FUNCTION //
-function notifyAlert(message, title) {
+async function notifyAlert(message, title) {
 	// CONSOLE LOG //
 	console.log(message);
 	// IF NTFY_URL .ENV VAR SET //
 	if (process.env.NTFY_URL) {
-		fetch(process.env.NTFY_URL, {
+		await fetch(process.env.NTFY_URL, {
 			method: "POST",
 			body: message,
 			headers: {
