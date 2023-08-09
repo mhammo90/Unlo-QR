@@ -13,31 +13,36 @@ function error401(req, res) {
 }
 
 // MAIN INTERFACE
-router.get("/", (req, res) => {
-	const currentChild = whoIP(req.ip);
-	const childStatus = getStatus(currentChild);
-	if (!currentChild) {
-		error401(req, res);
-	} else {
-		res.render("index", { status: childStatus });
+router.get("/", async (req, res) => {
+	try {
+		const currentChild = await whoIP(req.ip);
+		const childStatus = await getStatus(currentChild);
+		if (!currentChild) {
+			error401(req, res);
+		} else {
+			res.render("index", { status: childStatus });
+		}
+	} catch (error) {
+		console.error(`An Error Occured: ${error}`);
 	}
 });
 
 // COMPLETE TASK ROUTE //
-router.post("/complete", (req, res) => {
+router.post("/complete", async (req, res) => {
 	// CHECK CURRENT CHILD //
-	const currentChild = whoIP(req.ip);
+	const currentChild = await whoIP(req.ip);
 	if (currentChild) {
 		try {
 			const { taskName, taskPoints } = req.body;
 			// COMPLETE TASK //
-			completeTask(currentChild, taskPoints);
+			await completeTask(currentChild, taskPoints);
 			const message = `${taskName} Completed. Earned ${taskPoints} points`;
-			notifyAlert(message);
+			await notifyAlert(message);
 			// POINTS CHECK //
 			// IF TRUE THEN UNLOCK //
-			if (pointsCheck(currentChild)) {
-				unblockChild(currentChild);
+			var check = await pointsCheck(currentChild);
+			if (check) {
+				await unblockChild(currentChild);
 				res.render("index", { status: "unblocked", message: message });
 			} else {
 				// ELSE CONTINUE //

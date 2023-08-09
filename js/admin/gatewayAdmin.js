@@ -2,7 +2,14 @@
 const { getIP, setStatus, setTimes, getStatus, checkBlockInterval, getAllChildNames, refreshPoints } = require(relPath(
 	"./js/children/helper"
 ));
-const ipTables = require("iptables");
+const iptables = require("iptables");
+const { promisify } = require("util");
+
+// PROMISIFY IPTABLES FUNCTIONS //
+const iptAllowSync = promisify(iptables.allow);
+const iptDropSync = promisify(iptables.drop);
+const iptAppendSync = promisify(iptables.newRule);
+const iptDeleteSync = promisify(iptables.deleteRule);
 
 // RETURN ALL TRAFFIC RULE FOR SPECIFIC IP OR && PORT //
 function allTraffic(ip, port) {
@@ -19,7 +26,6 @@ function allTraffic(ip, port) {
 		};
 	}
 }
-
 // RETURN REDIRECT RULE FOR SPECIFIED IP AND PORT //
 function redirectTraffic(ip, port) {
 	return {
@@ -32,7 +38,6 @@ function redirectTraffic(ip, port) {
 		toPort: process.env.USER_PORT,
 	};
 }
-
 // GENERAL FIREWALL RULES ON START //
 function intialiseFirewall() {
 	// ALLOWED TRAFFIC TO ADMIN PORT //
@@ -84,110 +89,79 @@ function intialiseFirewall() {
 }
 
 // BLOCK CHILD //
-function blockChild(cName) {
+async function blockChild(cName) {
 	const childIP = getIP(cName);
-	// REDIRECT HTTP TCP traffic from port 80 to USER_PORT //
-	ipTables.append(redirectTraffic(childIP, 80), (err) => {
-		if (err) {
-			console.error(`Error ADDING HTTP Redirect rule for ${cName}`, err);
-		} else {
-			console.log(`HTTP Redirect rule for ${cName} ADDED successfully.`);
-		}
-	});
-	// REDIRECT HTTPS TCP traffic from port 443 to USER_PORT //
-	ipTables.append(redirectRule(childIP, 443), (err) => {
-		if (err) {
-			console.error(`Error ADDING HTTPS Redirect rule for ${cName}`, err);
-		} else {
-			console.log(`HTTPS Redirect rule for ${cName} ADDED successfully.`);
-		}
-	});
-	// REJECT ALL OTHER TRAFFIC FOR CHILD //
-	ipTables.reject(allTraffic(childIP), (err) => {
-		if (err) {
-			console.error(`Error ADDING REJECT ALL rule for ${cName}`, err);
-		} else {
-			console.log(`REJECT ALL rule for ${cName} ADDED successfully.`);
-		}
-	});
-	// SET CHILD STATUS TO BLOCKED //
-	setStatus(cName, 1);
-	// NOTIFY ALERT //
-	notifyAlert(`${cName} blocked SUCCESSFULLY`);
+	try {
+		// REDIRECT HTTP TCP traffic from port 80 to USER_PORT //
+		await iptAppendSync(redirectTraffic(childIP, 80));
+		// REDIRECT HTTPS TCP traffic from port 443 to USER_PORT //
+		await iptAppendSync(redirectRule(childIP, 443));
+		// REJECT ALL OTHER TRAFFIC FOR CHILD //
+		await iptDropSync(allTraffic(childIP));
+		// SET CHILD STATUS TO BLOCKED //
+		await setStatus(cName, 1);
+		// NOTIFY ALERT //
+		await notifyAlert(`${cName} blocked SUCCESSFULLY`);
+	} catch (error) {
+		console.error(`Error blocking ${cName}: ${error}`);
+	}
 }
 // UNBLOCK CHILD //
-function unblockChild(cName) {
+async function unblockChild(cName) {
 	const childIP = getIP(cName);
-	// REMOVE HTTP TCP REDIRECT //
-	ipTables.delete(redirectRule(childIP, 80), (err) => {
-		if (err) {
-			console.error(`Error DELETING HTTP Redirect rule for ${cName}`, err);
-		} else {
-			console.log(`HTTPS Redirect rule for ${cName} DELETED successfully.`);
-		}
-	});
-	// REMOVE HTTPS TCP REDIRECT //
-	ipTables.delete(redirectRule(childIP, 443), (err) => {
-		if (err) {
-			console.error(`Error DELETING HTTPS Redirect rule for ${cName}`, err);
-		} else {
-			console.log(`HTTPS Redirect rule for ${cName} DELETED successfully.`);
-		}
-	});
-	// DELETE REJECT RULE //
-	ipTables.delete(allTraffic(childIP), (err) => {
-		if (err) {
-			console.error(`Error DELETING REJECT ALL rule for ${cName}`, err);
-		} else {
-			console.log(`REJECT ALL rule for ${cName} DELETED successfully.`);
-		}
-	});
-	// ALLOW ALL TRAFFIC RULE //
-	ipTables.allow(allTraffic(childIP), (err) => {
-		if (err) {
-			console.error(`Error ADDING ALLOW ALL rule for ${cName}`, err);
-		} else {
-			console.log(`ALLOW ALL rule for ${cName} ADDED successfully.`);
-		}
-	});
-	// SET CHILD STATUS TO UNBLOCKED //
-	setStatus(cName, 0);
-	// SET BLOCKED TIMES TO NOW //
-	setTimes(cName);
-	// SEND NOTIFICATION //
-	notifyAlert(`${cName} UNBLOCKED Succesfully`);
+	try {
+		// REMOVE HTTP TCP REDIRECT //
+		await iptDeleteSync(redirectRule(childIP, 80));
+		// REMOVE HTTPS TCP REDIRECT //
+		await iptDeleteSync(redirectRule(childIP, 443));
+		// DELETE REJECT RULE //
+		await iptDeleteSync(allTraffic(childIP));
+		// ALLOW ALL TRAFFIC RULE //
+		await iptAllowSync(allTraffic(childIP));
+		// SET CHILD STATUS TO UNBLOCKED //
+		await setStatus(cName, 0);
+		// SET BLOCKED TIMES TO NOW //
+		await setTimes(cName);
+		// SEND NOTIFICATION //
+		await notifyAlert(`${cName} UNBLOCKED Succesfully`);
+	} catch (error) {
+		console.error(`Error unblocking ${cName}: ${error}`);
+	}
 }
 
 // REFRESH FUNCTIONS //
 // CHECKS FOR REFRESH AND RUNS REFRESH ON CONDITION //
-function refresh(cName) {
-	const status = getStatus(cName);
-	const intervalExc = checkBlockInterval(cName);
+async function refresh(cName) {
+	const status = await getStatus(cName);
+	const intervalExc = await checkBlockInterval(cName);
 	// IF UNBLOCKED && INTERVAL NOT EXCEEDED //
 	if (status === "unblocked" && !intervalExc) {
 		console.log(`The Block Interval for ${cName} has NOT exceeded. REFRESH DEFERRED`);
 	}
 	// IF BLOCKED //
-	if (status === "blocked") {
+	else if (status === "blocked") {
 		console.log(`${cName} is NOT unblocked. REFRESH DEFERRED`);
 	}
 	// IF UNBLOCK && INTERVAL EXCEEDED //
-	if (status === "unblocked" && intervalExc) {
-		refreshPoints(cName);
-		notifyAlert(`Points Refreshed for ${cName}`);
-		blockChild(cName);
+	else if (status === "unblocked" && intervalExc) {
+		await refreshPoints(cName);
+		await notifyAlert(`Points Refreshed for ${cName}`);
+		await blockChild(cName);
 	}
 }
 
 // ITERATES THROUGH ALL CHILDREN AND PERFROMS REFRESHCHECK() ON ALL CHILDREN //
-function refreshHelper() {
-	const children = getAllChildNames();
-	for (const child of children) {
-		refresh(child);
+async function refreshHelper() {
+	const children = await getAllChildNames();
+	const refreshes = children.map((child) => refresh(child));
+	try {
+		await Promise.all(refreshes);
+	} catch (error) {
+		console.error(`Error: ${error}`);
+	} finally {
+		// RUN REFRESH TIMER REGARDLESS OF CATCH //
+		refreshTimer();
 	}
-	console.log("refreshHelper Completed");
-	// STARTS REFRESHTIMER
-	refreshTimer();
 }
 
 // EXECUTES REFRESHHELPER AFTER 30 MINS //
