@@ -83,7 +83,8 @@ async function getAllChildNames() {
 async function getAllChildren() {
 	try {
 		const children = await getAllChildNames();
-		return children.map((child) => importChild(child));
+		var allChildren = await Promise.all(children.map(async (child) => await importChild(child)));
+		return allChildren;
 	} catch (error) {
 		console.error(`An Error Occured: ${error}`);
 	}
