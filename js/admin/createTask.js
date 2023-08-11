@@ -11,7 +11,7 @@ async function createTask(name, points) {
 	var filePath = path.join(taskDataLoc, `${newTask.id}.json`);
 	try {
 		fs.writeFile(filePath, output, "utf-8");
-		console.log(`${newTask.name} created succesfully with ${newTask.id}`);
+		console.log(`${newTask.taskName} created succesfully with ${newTask.id}`);
 	} catch (error) {
 		console.error(`Error creating Task: ${error}`);
 	}
