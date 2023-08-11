@@ -31,10 +31,7 @@ async function getTaskNames() {
 async function getAllTasks() {
 	try {
 		var ids = await getTaskIDs();
-		var tasks = ids.map(async (id) => {
-			var task = await importTask(id);
-			return task;
-		});
+		var tasks = await Promise.all(ids.map(async (id) => await importTask(id)));
 		return tasks;
 	} catch (error) {
 		console.error(`An Error Occured: ${error}`);
