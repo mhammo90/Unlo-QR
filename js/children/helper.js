@@ -5,67 +5,92 @@ const { childDataLoc, updateChild, importChild } = require(relPath("./js/admin/c
 
 // SET status TO "unblocked" (0) OR "blocked" (1) //
 async function setStatus(cName, status) {
-	if (status === 0) {
-		await updateChild(cName, "status", "unblocked");
-	} else if (status === 1) {
-		await updateChild(cName, "status", "blocked");
-	} else {
-		console.error("Unknown Status");
-		return;
+	try {
+		if (status === 0) {
+			await updateChild(cName, "status", "unblocked");
+		} else if (status === 1) {
+			await updateChild(cName, "status", "blocked");
+		} else {
+			console.error("Unknown Status");
+			return;
+		}
+	} catch (error) {
+		console.error(`An Error Occured while setting the status: ${error}`);
 	}
 }
 
 // SET unblockTime AS now AND blockTime FROM refreshInterval //
 async function setTimes(cName) {
-	var date = new Date();
-	var unblockTime = date.getTime();
-	var child = await importChild(cName);
-	await updateChild(cName, "unblockTime", unblockTime);
-	var interval = child.refreshInterval;
-	var millis = interval * 3600 * 1000;
-	var blockTime = unblockTime + millis;
-	await updateChild(cName, "blockTime", blockTime);
+	try {
+		var date = new Date();
+		var unblockTime = date.getTime();
+		var child = await importChild(cName);
+		await updateChild(cName, "unblockTime", unblockTime);
+		var interval = child.refreshInterval;
+		var millis = interval * 3600 * 1000;
+		var blockTime = unblockTime + millis;
+		await updateChild(cName, "blockTime", blockTime);
+	} catch (error) {
+		console.error(`An Error occured while setting the blocktimes: ${error}`);
+	}
 }
 
 // GET BLOCK TIME (FORMAT: 0 == Date String, 1 == Enoch Milliseconds) //
 async function getBlockTime(cName, format) {
-	var blockTime = await importChild(cName.blockTime);
-	if (format === 0) {
-		return blockTime;
-	} else if (format === 1) {
-		var date = new Date(blockTime);
-		return date;
+	try {
+		var blockTime = await importChild(cName.blockTime);
+		if (format === 0) {
+			return blockTime;
+		} else if (format === 1) {
+			var date = new Date(blockTime);
+			return date;
+		}
+	} catch (error) {
+		console.error(`An Error occured while retrieving the block time: ${error}`);
 	}
 }
 
 // GET STATUS //
 async function getStatus(cName) {
-	var status = await importChild(cName).status;
-	return status;
+	try {
+		const child = await importChild(cName);
+		return child.status;
+	} catch (error) {
+		console.error(`An Error occurred retrieving the status: ${error}`);
+		return null;
+	}
 }
 
 // CHECK WHETHER INTERVAL EXCEEDED (returns TRUE / FALSE) //
 async function checkBlockInterval(cName) {
-	var status = await getStatus(cName);
-	if (status === "unblocked") {
-		var block = await getBlockTime(cName, 1);
-		var now = Date.now();
-		if (now < block) {
-			return false;
-		} else if (now > block) {
-			return true;
+	try {
+		var status = await getStatus(cName);
+		if (status === "unblocked") {
+			var block = await getBlockTime(cName, 1);
+			var now = Date.now();
+			if (now < block) {
+				return false;
+			} else if (now > block) {
+				return true;
+			} else {
+				return;
+			}
 		} else {
 			return;
 		}
-	} else {
-		return;
+	} catch (error) {
+		console.error(`An error occured while retrieving the blocked interval: ${error}`);
 	}
 }
 
 // GET CHILD IP //
 async function getIP(cName) {
-	var ip = await importChild(cName).ip;
-	return ip;
+	try {
+		var child = await importChild(cName).ip;
+		return child.ip;
+	} catch (error) {
+		console.error(`An error occured while retrieving the child ip: ${error}`);
+	}
 }
 
 // GET ALL CHILD NAMES //
@@ -92,56 +117,88 @@ async function getAllChildren() {
 
 // WHO IP - returns NAME of IP owner
 async function whoIP(ip) {
-	var names = await getAllChildNames();
-	for (const name of names) {
-		const child = await importChild(name);
-		if (child && child.ip === ip) {
-			return name;
+	try {
+		var names = await getAllChildNames();
+		for (const name of names) {
+			const child = await importChild(name);
+			if (child && child.ip === ip) {
+				return name;
+			}
 		}
+		return null;
+	} catch (error) {
+		console.error(`An error occured while retrieving name: ${error}`);
 	}
-	return null;
 }
 
 // COMPLETE TASK //
 async function completeTask(cName, points) {
-	await addPoints(cName, points);
+	try {
+		await addPoints(cName, points);
+	} catch (error) {
+		console.error(`An error occured while COMPLETING THE TASK: ${error}`);
+	}
 }
 
 // GET CURRENT POINTS//
 async function getPoints(cName) {
-	var curr = await importChild(cName).currentPoints;
-	return curr;
+	try {
+		var child = await importChild(cName);
+		return child.currentPoints;
+	} catch (error) {
+		console.error(`An error occured while retreiving points: ${error}`);
+	}
 }
 // GET MAX POINTS //
 async function getMax(cName) {
-	var max = await importChild(cName).maxPoints;
-	return max;
+	try {
+		var child = await importChild(cName);
+		return child.maxPoints;
+	} catch (error) {
+		console.error(`An error occured while retreiving points: ${error}`);
+	}
 }
 // SET CURRENT POINTS //
 async function setPoints(cName, points) {
-	await updateChild(cName, "currentPoints", points);
+	try {
+		await updateChild(cName, "currentPoints", points);
+	} catch (error) {
+		console.error(`An error occured while setting points: ${error}`);
+	}
 }
 
 // SET POINTS TO 0 //
 async function refreshPoints(cName) {
-	await setPoints(cName, 0);
+	try {
+		await setPoints(cName, 0);
+	} catch (error) {
+		console.error(`An error occured while refreshing: ${error}`);
+	}
 }
 
 // ADD POINTS //
 async function addPoints(cName, points) {
-	var curr = await getPoints(cName);
-	var newP = curr + points;
-	await setPoints(cName, newP);
+	try {
+		var curr = await getPoints(cName);
+		var newP = curr + points;
+		await setPoints(cName, newP);
+	} catch (error) {
+		console.error(`An error occured while setting points: ${error}`);
+	}
 }
 
 // POINTS CHECK - IF CURRENT > MAX = TRUE
 async function pointsCheck(cName) {
-	var current = await getPoints(cName);
-	var max = await getMax(cName);
-	if (current >= max) {
-		return true;
-	} else {
-		return false;
+	try {
+		var current = await getPoints(cName);
+		var max = await getMax(cName);
+		if (current >= max) {
+			return true;
+		} else {
+			return false;
+		}
+	} catch (error) {
+		console.error(`An error occured while checking the points: ${error}`);
 	}
 }
 
