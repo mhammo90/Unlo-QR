@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { getAllChildNames } = require(relPath("./js/children/child"));
+const { getAllChildNames } = require(relPath("./js/children/helper"));
 const { getTaskIDs } = require(relPath("./js/tasks/tasks.js"));
 
 // "/" ADMIN ROUTE //

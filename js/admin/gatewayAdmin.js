@@ -159,7 +159,7 @@ async function refreshHelper() {
 	} catch (error) {
 		console.error(`Error: ${error}`);
 	} finally {
-		// RUN REFRESH TIMER REGARDLESS OF CATCH //
+		// RUN REFRESH TIMER //
 		refreshTimer();
 	}
 }

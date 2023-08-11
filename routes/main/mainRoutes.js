@@ -1,5 +1,5 @@
 const express = require("express");
-const { unblockChild } = require(relpath("./js/admin/gatewayAdmin"));
+const { unblockChild } = require(relPath("./js/admin/gatewayAdmin"));
 const router = express.Router();
 const { whoIP, getStatus, pointsCheck, completeTask } = require(relPath("./js/children/helper"));
 
