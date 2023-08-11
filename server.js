@@ -1,7 +1,7 @@
 // IMPORTS AND REQUIRES //
 require("dotenv").config();
 const express = require("express");
-const { intialiseFirewall } = require("./js/admin/gatewayAdmin");
+//const { intialiseFirewall } = require("./js/admin/gatewayAdmin");
 
 // RELATIVE PATH TO ABSOLUTE PATH //
 const path = require("path");
