@@ -132,21 +132,25 @@ async function unblockChild(cName) {
 // REFRESH FUNCTIONS //
 // CHECKS FOR REFRESH AND RUNS REFRESH ON CONDITION //
 async function refresh(cName) {
-	const status = await getStatus(cName);
-	const intervalExc = await checkBlockInterval(cName);
-	// IF UNBLOCKED && INTERVAL NOT EXCEEDED //
-	if (status === "unblocked" && !intervalExc) {
-		console.log(`The Block Interval for ${cName} has NOT exceeded. REFRESH DEFERRED`);
-	}
-	// IF BLOCKED //
-	else if (status === "blocked") {
-		console.log(`${cName} is NOT unblocked. REFRESH DEFERRED`);
-	}
-	// IF UNBLOCK && INTERVAL EXCEEDED //
-	else if (status === "unblocked" && intervalExc) {
-		await refreshPoints(cName);
-		await notifyAlert(`Points Refreshed for ${cName}`);
-		await blockChild(cName);
+	try {
+		const status = await getStatus(cName);
+		const intervalExc = await checkBlockInterval(cName);
+		// IF UNBLOCKED && INTERVAL NOT EXCEEDED //
+		if (status === "unblocked" && !intervalExc) {
+			console.log(`The Block Interval for ${cName} has NOT exceeded. REFRESH DEFERRED`);
+		}
+		// IF BLOCKED //
+		else if (status === "blocked") {
+			console.log(`${cName} is NOT unblocked. REFRESH DEFERRED`);
+		}
+		// IF UNBLOCK && INTERVAL EXCEEDED //
+		else if (status === "unblocked" && intervalExc) {
+			await refreshPoints(cName);
+			await notifyAlert(`Points Refreshed for ${cName}`);
+			await blockChild(cName);
+		}
+	} catch (error) {
+		console.error(`An error occured while running refresh: ${error}`);
 	}
 }
 

@@ -40,9 +40,13 @@ async function getAllTasks() {
 
 // SHOW TASK QR CODE - returns QRCODE base64 STRING //
 async function showTaskQR(taskID) {
-	const task = await importTask(taskID);
+	try {
+		const task = await importTask(taskID);
 
-	return task.showQR();
+		return task.showQR();
+	} catch (error) {
+		console.error(`An error occured while showing the QR code: ${error}`);
+	}
 }
 
 // EXPORT getTaskIDs(), getTask(), getAllTasks() //

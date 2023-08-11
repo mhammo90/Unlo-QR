@@ -14,7 +14,7 @@ async function importChild(cName) {
 	try {
 		const data = await fs.readFile(filePath, "utf-8");
 		const child = JSON.parse(data);
-		return new Child(
+		const rValue = new Child(
 			child.name,
 			child.ip,
 			child.refreshInterval,
@@ -24,6 +24,7 @@ async function importChild(cName) {
 			child.blockTime,
 			child.unblockTime
 		);
+		return rValue;
 	} catch (error) {
 		console.error(`Error Importing ${name}: ${error}`);
 		return null;
@@ -34,22 +35,26 @@ async function importChild(cName) {
 async function updateChild(cName, key, value) {
 	var name = cName.charAt(0).toUpperCase() + cName.slice(1);
 	var filePath = path.join(childDataLoc, `${name}.json`);
-	var child = await importChild(name);
-	if (!child) {
-		console.error(`Child ${name} not found.`);
-		return;
-	}
-	if (child[key] === value) {
-		return;
-	} else {
-		child.update(key, value);
-		var output = JSON.stringify(child, null, 2);
-		try {
-			await fs.writeFile(filePath, output, "utf-8");
-			console.log(`${name} updated successfully`);
-		} catch (error) {
-			console.error(`Error updating ${name}: ${error}`);
+	try {
+		var child = await importChild(name);
+		if (!child) {
+			console.error(`Child ${name} not found.`);
+			return;
 		}
+		if (child[key] === value) {
+			return;
+		} else {
+			child.update(key, value);
+			var output = JSON.stringify(child, null, 2);
+			try {
+				await fs.writeFile(filePath, output, "utf-8");
+				console.log(`${name} updated successfully`);
+			} catch (error) {
+				console.error(`Error updating ${name}: ${error}`);
+			}
+		}
+	} catch (error) {
+		console.error(`An occured while updating the child ${name}: ${error}`);
 	}
 }
 
