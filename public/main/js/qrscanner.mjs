@@ -68,9 +68,13 @@ async function scanQRCode() {
 	}
 }
 
-function qrscan() {
+async function qrscan() {
 	if (supported && !qrScanner._active) {
-		scanQRCode();
+		try {
+			scanQRCode();
+		} catch (error) {
+			console.error("QR ERROR");
+		}
 	}
 }
 

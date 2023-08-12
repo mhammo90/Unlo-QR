@@ -5,9 +5,213 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="stylesheet" href="/css/styles.css" />
 		<title>Unlo-QR - <%= currentChild %></title>
+		<!-- BOOTSTRAP IMPORT -->
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+			integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9"
+			crossorigin="anonymous" />
+		<% if (status === "blocked") { %>
+		<!-- QR Scanner Module import-->
+		<script type="module" src="js/qrscanner.mjs"></script>
+		<% } %>
+
+		<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+		<link rel="manifest" href="/favicon/site.webmanifest" />
 	</head>
-	<body>
-		<h1>Welcome <%= currentChild %></h1>
-		<%= status %>
+	<body class="bg-warning-subtle">
+		<div class="container-fluid pt-2 landscape-mobile">
+			<div class="row justify-content-center align-items-center g-2">
+				<div class="col-2 mx-2">
+					<div class="row text-center">
+						<% if (status === "blocked") { %>
+						<i class="bi bi-lock display-1 bg-danger text-white rounded-pill shadow-lg shadow w-100"></i>
+						<% } else if (status === "unblocked") { %>
+						<i class="bi bi-unlock display-1 bg-success text-white rounded-pill shadow-lg shadow w-100"></i>
+						<% } %>
+					</div>
+				</div>
+
+				<div class="col-3 align-items-center justify-content-center">
+					<div class="row text-center">
+						<h2>Current Child:</h2>
+					</div>
+					<div class="row ms-1 me-1">
+						<h3 class="text-dark text-center border border-black border-2 shadow shadow-lg rounded-3 bg-white">
+							<%= currentChild %>
+						</h3>
+					</div>
+				</div>
+
+				<div class="col offset-1">
+					<div class="card bg-info text-bg-info shadow">
+						<div class="card-body text-center">
+							<div class="row align-items-center">
+								<div class="col-6">
+									<i class="bi bi-check2-square display-5"></i>
+								</div>
+								<div class="col-6">
+									<p class="card-text display-3"><%= currentPoints %></p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="col">
+					<div class="card bg-warning text-bg-warning shadow">
+						<div class="card-body text-center">
+							<div class="row align-items-center">
+								<div class="col-6">
+									<i class="bi bi-unlock display-5"></i>
+								</div>
+								<div class="col-6">
+									<p class="card-text display-3"><%= maxPoints%></p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<% if (displayMessage) { %>
+			<div class="mt-4 mx-5 alert alert-secondary alert-dismissible fade show" role="alert">
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				<strong><i class="bi bi-chat-text"></i></strong>
+				<%=displayMessage%>
+			</div>
+			<% } %>
+
+			<div class="row mt-2">
+				<div class="col offset-6">
+					<div class="progress border border-2 border-dark-subtle" style="height: 20px">
+						<div
+							class="progress-bar progress-bar-animated progress-bar-striped bg-danger"
+							role="progressbar"
+							style="width: <%=percent%>%"
+							aria-valuenow="<%=percent%>"
+							aria-valuemin="0"
+							aria-valuemax="100">
+							<%= percent%> %
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="container mt-5 mb-5 bg-success my-3 pb-2 pt-2 rounded-4 shadow shadow-lg">
+				<div class="row">
+					<% if (status === "blocked") { %>
+					<button
+						type="button"
+						id="qr-btn"
+						class="btn btn-success w-100"
+						data-bs-toggle="modal"
+						data-bs-target="#qrscanWindow">
+						<div class="row align-items-center">
+							<div class="col-1">
+								<i class="bi bi-check-circle-fill display-3"></i>
+							</div>
+							<div class="col"><p class="display-4 pb-0 mb-0">Complete Task</p></div>
+							<div class="col-1"><i class="bi bi-check-circle-fill display-3"></i></div>
+						</div>
+					</button>
+
+					<% } else if (status === "unblocked") { %>
+					<div class="col-1">
+						<i class="bi bi-unlock-fill display-3"></i>
+					</div>
+					<div class="col">
+						<p class="display-4 pb-0 mb-0">Internet UNLOCKED</p>
+					</div>
+					<div class="col-1">
+						<i class="bi bi-unlock-fill display-3"></i>
+					</div>
+					<% } %>
+				</div>
+			</div>
+
+			<% if (status === "blocked") { %>
+			<div class="container my-3 pb-3 pt-2 bg-info-subtle rounded-4 shadow shadow-lg">
+				<div class="row align-items-center justify-contents-center g-4">
+					<div class="col">
+						<div class="row align-items-center">
+							<div class="col-1 offset-4">
+								<i class="bi bi-card-checklist display-3"></i>
+							</div>
+							<div class="col">
+								<h3 class="ps-2"><u>Last Task</u></h3>
+							</div>
+						</div>
+						<div class="row input-group">
+							<div class="col">
+								<label for="lastTaskName">Task Name:</label>
+								<input readonly class="form-control" type="text" name="lastTaskName" id="lastTaskName" />
+							</div>
+							<div class="col-3">
+								<label for="lastTaskPoints">Task Points:</label>
+								<input readonly type="text" class="form-control" name="lastTaskPoints" id="lastTaskPoints" />
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<% } else if (status === "unblocked") { %> <% } %>
+		</div>
+		<div class="portrait-rotate">
+			<div id="rotate-gif-container" class="container-fluid bg-black d-flex justify-content-center align-items-center">
+				<img
+					src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExd2g3bWVnanJvb3VlcGk3cjI2YWp6bTBrdTMxOHU4YmtsMnd2c25xYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/XXU2vaPVrnhV7ZAGpY/giphy.gif"
+					class="img-fluid"
+					alt="" />
+			</div>
+		</div>
+
+		<!-- Modal Body -->
+		<!-- if you want to close by clicking outside the modal, delete the last endpoint:data-bs-backdrop and data-bs-keyboard -->
+		<div
+			class="modal fade"
+			id="qrscanWindow"
+			tabindex="-1"
+			data-bs-backdrop="static"
+			data-bs-keyboard="false"
+			role="dialog"
+			aria-labelledby="qrscanWindow"
+			aria-hidden="true">
+			<div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="modalTitleId">Complete Task - QR Scanner</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<video id="qr-video" width="100%" height="auto" style="max-width: 400px"></video>
+						<div id="qr-result"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" id="cls-btn" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- BOOTSTRAP IMPORT -->
+		<script
+			src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
+			integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
+			crossorigin="anonymous"></script>
+
+		<!-- DYNAMICALLY ADD LAST TASK TO INPUT FIELDS-->
+		<% if (status === "blocked") { %>
+		<script>
+			const lastTask = JSON.parse(localStorage.getItem("lastTask"));
+			const lastName = document.getElementById("lastTaskName");
+			const lastPoints = document.getElementById("lastTaskPoints");
+			lastName.value = lastTask.taskName;
+			lastPoints.value = lastTask.taskPoints;
+		</script>
+		<% } %>
 	</body>
 </html>
