@@ -76,14 +76,6 @@
 				</div>
 			</div>
 
-			<% if (displayMessage) { %>
-			<div class="mt-4 mx-5 alert alert-secondary alert-dismissible fade show" role="alert">
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-				<strong><i class="bi bi-chat-text"></i></strong>
-				<%=displayMessage%>
-			</div>
-			<% } %>
-
 			<div class="row mt-2">
 				<div class="col offset-6">
 					<div class="progress border border-2 border-dark-subtle" style="height: 20px">
@@ -100,7 +92,15 @@
 				</div>
 			</div>
 
-			<div class="container mt-5 mb-5 bg-success my-3 pb-2 pt-2 rounded-4 shadow shadow-lg">
+			<% if (message) { %>
+			<div class="mt-4 mx-5 alert alert-secondary alert-dismissible fade show text-center display-6" role="alert">
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				<strong><i class="bi bi-chat-text"></i></strong>
+				<%=message%>
+			</div>
+			<% } %>
+
+			<div class="container text-white text-center mt-5 mb-5 bg-success my-3 pb-2 pt-2 rounded-4 shadow shadow-lg">
 				<div class="row">
 					<% if (status === "blocked") { %>
 					<button
@@ -114,7 +114,7 @@
 								<i class="bi bi-check-circle-fill display-3"></i>
 							</div>
 							<div class="col"><p class="display-4 pb-0 mb-0">Complete Task</p></div>
-							<div class="col-1"><i class="bi bi-check-circle-fill display-3"></i></div>
+							<div class="col-1 me-3"><i class="bi bi-check-circle-fill display-3"></i></div>
 						</div>
 					</button>
 
@@ -123,9 +123,9 @@
 						<i class="bi bi-unlock-fill display-3"></i>
 					</div>
 					<div class="col">
-						<p class="display-4 pb-0 mb-0">Internet UNLOCKED</p>
+						<p class="display-4 pb-0 mb-0">Internet <u>UNLOCKED</u></p>
 					</div>
-					<div class="col-1">
+					<div class="col-1 me-3">
 						<i class="bi bi-unlock-fill display-3"></i>
 					</div>
 					<% } %>
@@ -213,5 +213,12 @@
 			lastPoints.value = lastTask.taskPoints;
 		</script>
 		<% } %>
+		<!-- REMOVE URL ADDITIONS AFTER LOAD -->
+		<script>
+			document.addEventListener("DOMContentLoaded", () => {
+				const urlWithoutMessage = window.location.pathname;
+				history.replaceState({}, document.title, urlWithoutMessage);
+			});
+		</script>
 	</body>
 </html>
