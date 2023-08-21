@@ -258,14 +258,14 @@
 													<td>
 														<button
 															class="btn btn-outline-secondary"
-															onclick="printQR('<%= task.id %>', '<%= task.taskName%>')">
+															onclick="printQR('<%= task.id %>', '<%= task.taskName%>', '<%=task.taskPoints%>')">
 															<i class="bi bi-printer"></i>
 														</button>
 													</td>
 													<td>
 														<button
 															class="btn btn-outline-secondary"
-															onclick="showQRCode('<%= task.id %>','<%=task.taskName%>')"
+															onclick="showQRCode('<%= task.id %>','<%=task.taskName%>','<%=task.taskPoints%>')"
 															data-bs-toggle="modal"
 															data-bs-target="#qrCodeModal">
 															<i class="bi bi-share"></i>
@@ -328,14 +328,14 @@
 			role="dialog"
 			aria-labelledby="qrCodeModal"
 			aria-hidden="true">
-			<div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-sm" role="document">
-				<div class="modal-content">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content w-auto">
 					<div class="modal-header">
 						<h5 class="modal-title" id="qrCodeModalTitle">QR Code Title</h5>
 						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
 					<div class="modal-body">
-						<img id="qrCodeImg" alt="" />
+						<img id="qrCodeImg" width="500" height="500" alt="" />
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -345,7 +345,7 @@
 		</div>
 
 		<script>
-			async function printQR(id, name) {
+			async function printQR(id, name, points) {
 				try {
 					const url = `/task/${id}/qr`;
 					const printWindow = window.open("", "_blank");
@@ -368,6 +368,7 @@
 						<body>
 							<h1>${name}</h1>
 							<img src=${qr} width="500" height=500></img>
+							<h1>${points} Points </h1>
 						</body>
 						</html>
 					`);
@@ -386,7 +387,7 @@
 		</script>
 
 		<script>
-			async function showQRCode(id, name) {
+			async function showQRCode(id, name, points) {
 				try {
 					const url = `/task/${id}/qr`;
 					const response = await fetch(url);
@@ -394,7 +395,7 @@
 					const modalImg = document.getElementById("qrCodeImg");
 					const modalTitle = document.getElementById("qrCodeModalTitle");
 					modalImg.src = qr;
-					modalTitle.innerText = name;
+					modalTitle.innerText = name + " -- " + points + " Points";
 				} catch (error) {
 					console.error(`An Error has occured: ${error}`);
 				}
