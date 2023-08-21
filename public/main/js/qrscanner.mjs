@@ -1,9 +1,10 @@
+// IMPORTS AND DOM ELEMENTS //
 import QrScanner from "./qr-scanner/qr-scanner.min.js";
-
 const qrVideo = document.getElementById("qr-video");
 const qrBtn = document.getElementById("qr-btn");
 const clsBtn = document.getElementById("cls-btn");
 
+// CHECK IF CAMERA IS SUPPORTED [QR CODE FUNCTION] //
 function supported() {
 	if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
 		return false;
@@ -12,6 +13,7 @@ function supported() {
 	}
 }
 
+// SENDS DATA FROM QR TO SERVER AND REDIRECTS TO INCLUDE MESSAGE //
 async function postRequest(data) {
 	try {
 		const response = await fetch("/complete", {
@@ -24,14 +26,15 @@ async function postRequest(data) {
 		if (!response.ok) {
 			alert("Network Response NOT OK");
 		}
-
 		const respData = await response.json();
-		alert(respData.message);
+		console.log(`Server Responsed: ${respData}`);
+		window.location.replace(`/?message=${encodeURIComponent(respData.message)}`);
 	} catch (error) {
-		alert(error);
+		console.error(error);
 	}
 }
 
+// RETRIEVES JSON DATA FROM QR CODE, CONFIRMS, INITIATES REQUEST AND SAVES LAST TASK TO LOCALSTORAGE //
 async function completeTask(taskQRString) {
 	try {
 		const { taskName, taskPoints } = await JSON.parse(taskQRString);
@@ -39,26 +42,32 @@ async function completeTask(taskQRString) {
 			taskName,
 			taskPoints,
 		};
+		console.log(data);
 		const check = confirm(`Complete ${taskName} for ${taskPoints} points?`);
 		if (check) {
-			const post = await postRequest(data);
+			await postRequest(data);
 			const lastTask = JSON.stringify(data);
 			window.localStorage.setItem("lastTask", lastTask);
 		}
 	} catch (error) {
-		console.errror(error);
+		console.error(error);
 	}
 }
 
+// -- QR READER CODE --  //
+// QR SCANNER OBJECT INITIALISATION //
 const qrScanner = new QrScanner(
 	qrVideo,
 	(result) => {
-		qrScanner.stop();
+		// ON RESULT //
+		clsBtn.click();
 		completeTask(result.data);
 	},
+	// REAR FACING CAMERA ON TABLETS //
 	{ preferredCamera: "environment" }
 );
 
+// INITIATE SCANNER FUNCTION //
 async function scanQRCode() {
 	try {
 		await qrScanner.start();
@@ -68,6 +77,7 @@ async function scanQRCode() {
 	}
 }
 
+// IF SUPPORTED DEVICE AND QRSCANNER NOT ACTIVE, INITIATE SCANNER //
 async function qrscan() {
 	if (supported && !qrScanner._active) {
 		try {
@@ -78,11 +88,13 @@ async function qrscan() {
 	}
 }
 
+// IF QRSCANNER IS ACTIVE, STOP QRSCANNER //
 function qrstop() {
 	if (qrScanner._active) {
 		qrScanner.stop();
 	}
 }
 
+// EVENT LISTENERS FOR BUTTONS TO START AND STOP QR CANVAS OBJECT //
 qrBtn.addEventListener("click", qrscan);
 clsBtn.addEventListener("click", qrstop);
