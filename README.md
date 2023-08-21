@@ -13,7 +13,7 @@
 Unlo-QR is a project aimed at addressing the challenges posed by excessive and uncontrolled internet use in children. This application offers a solution that combines technology gamification and positive behavior reinforcement to encourage responsible and mindful use of digital devices. By incorporating a points-based reward system, the application empowers parents to set tasks and behaviors for their children, which need to be completed to unlock access to the internet. This approach provides a balance between healthy technology usage and the development of positive habits.
 
 ## Project Overview
-The project is developed using an agile approach, with a focus on incremental development and continuous feedback. It involves the creation of a user-friendly web application that offers both parents and children interfaces. The parent interface allows parents to set tasks/points allocate points, and monitor their child's progress. On the other hand, the child interface presents tracks points,Scan QR to complete Tasks and enables internet access upon completion of tasks.
+The project is developed using an agile approach, with a focus on incremental development and continuous feedback. It involves the creation of a user-friendly web application that offers both parents and children interfaces. The parent interface allows parents to set tasks/points allocate points, and monitor their child's progress. On the other hand, the child interface presents tracks points, scan QR codes to complete tasks and enables internet access upon completion of tasks.
 
 ## Features
 - Parent Interface:
