@@ -11,7 +11,7 @@ class Task {
 	}
 	createQR() {
 		return new Promise((resolve, reject) => {
-			const data = `{"taskName":${this.taskName},"taskPoints":${this.taskPoints}}`;
+			const data = `{"taskName":"${this.taskName}","taskPoints":${this.taskPoints}}`;
 			const options = {
 				errorCorrectionLevel: "H",
 			};
@@ -25,13 +25,6 @@ class Task {
 					reject(err);
 				});
 		});
-	}
-	showQR() {
-		if (!this.qrCode) {
-			console.error("QR code is not available.");
-			return;
-		}
-		return this.qrCode;
 	}
 }
 

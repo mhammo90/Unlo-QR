@@ -1,0 +1,417 @@
+<html>
+	<head>
+		<title>Unlo-QR Application Admin</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet" />
+		<link rel="stylesheet" href="styles.css" />
+		<!-- BOOTSTRAP IMPORT -->
+		<link
+			href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"
+			rel="stylesheet"
+			integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9"
+			crossorigin="anonymous" />
+
+		<!-- FAVICON IMPORT-->
+		<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+		<link rel="manifest" href="/favicon/site.webmanifest" />
+	</head>
+	<body class="bg-secondary-subtle">
+		<header class="my-4">
+			<h1 class="text-center text-decoration-underline">Unlo-QR Admininstration</h1>
+		</header>
+		<% if (!message) { %> <% } else if (message) { %>
+
+		<div class="alert alert-success alert-dismissible fade show" role="alert">
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+			<strong>Message:</strong> <%=message%>
+		</div>
+
+		<% } %>
+		<div class="total-block">
+			<div class="row g-2 g-sm-4 text-center align-items-center">
+				<!-- CHILDREN CARD-->
+				<div class="col-10 col-sm-5 offset-1">
+					<div class="card bg-primary shadow shadow-lg">
+						<div class="card-body">
+							<h1 class="card-title">Children</h1>
+							<p class="card-text display-1">
+								<span class="border px-4 border-white border-2 rounded-circle bg-primary-subtle"
+									><%=children.length%></span
+								>
+							</p>
+						</div>
+						<ul class="list-group list-group-flush">
+							<li class="list-group-item text-white bg-primary">
+								<div class="row align-items-center">
+									<h5 class="col m-0 p-0"><u>Child Name</u></h5>
+									<h5 class="col-2 m-0 p-0"><u>Points</u></h5>
+									<h5 class="col-2 m-0 p-0"><u>Status</u></h5>
+								</div>
+							</li>
+							<% for (const child of children) { %>
+							<li class="list-group-item">
+								<div class="row align-items-center">
+									<h5 class="col"><%= child.name%></h5>
+									<div class="col-2 display-6"><%= child.currentPoints %></div>
+									<div class="col-2">
+										<% if (child.status === "unblocked") { %>
+										<i class="bi bi-unlock display-6 text-success"></i>
+										<% } else if (child.status === "blocked") { %>
+
+										<i class="bi bi-lock display-6 text-danger"></i>
+										<% } %>
+									</div>
+								</div>
+							</li>
+							<%}%>
+						</ul>
+						<div class="card-footer">
+							<div class="container">
+								<button
+									type="button"
+									class="btn btn-outline-dark btn-lg"
+									data-bs-toggle="modal"
+									data-bs-target="#manageChildren">
+									<i class="bi bi-people-fill"></i>
+									<div class="vr"></div>
+									Manage Children
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- TASKS CARD -->
+				<div class="col-sm-5 col-10 offset-1 offset-sm-0">
+					<div class="card shadow shadow-lg bg-warning">
+						<div class="card-body">
+							<h1 class="card-title">Tasks</h1>
+							<p class="card-text display-1">
+								<span class="border px-4 border-white border-2 rounded-circle bg-warning-subtle"
+									><%=tasks.length%></span
+								>
+							</p>
+						</div>
+						<ul class="list-group list-group-flush">
+							<li class="list-group-item text-white bg-warning">
+								<div class="row align-items-center">
+									<h5 class="col m-0 p-0"><u>Task Name</u></h5>
+									<h5 class="col-2 m-0 p-0"><u>Task Points</u></h5>
+								</div>
+							</li>
+							<% for (const task of tasks) { %>
+							<li class="list-group-item">
+								<div class="row align-items-center">
+									<h5 class="col mb-0 border-end border-2 border-dark-subtle"><%= task.taskName%></h5>
+									<p class="col-2 mb-0 display-6"><%= task.taskPoints %></p>
+								</div>
+							</li>
+							<%}%>
+						</ul>
+						<div class="card-footer">
+							<button
+								type="button"
+								class="btn btn-outline-dark btn-lg"
+								data-bs-toggle="modal"
+								data-bs-target="#manageTasks">
+								<i class="bi bi-list-ul"></i>
+								<div class="vr"></div>
+								Manage Tasks
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- CHILD Modal Body-->
+		<div
+			class="modal fade"
+			id="manageChildren"
+			tabindex="-1"
+			role="dialog"
+			aria-labelledby="manageChildren"
+			aria-hidden="true">
+			<div class="modal-dialog modal-lg" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="manageChildrenTitle"><i class="bi bi-people-fill"></i> Manage Children</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col">
+									<div class="table-responsive">
+										<table class="table table-striped table-primary text-center">
+											<thead>
+												<tr>
+													<th scope="col">Name</th>
+													<th scope="col">Max Points</th>
+													<th scope="col">Refresh (Hours)</th>
+													<th scope="col">IP</th>
+													<th scope="col"><i class="bi bi-trash"></i></th>
+												</tr>
+											</thead>
+											<tbody>
+												<% for (const child of children) { %>
+												<tr class="">
+													<td><%= child.name %></td>
+													<td><%= child.maxPoints%></td>
+													<td><%= child.refreshInterval%></td>
+													<td><%= child.ip%></td>
+													<td>
+														<form method="POST" id="delete-<%=child.name%>" action="/child/delete/<%=child.name%>">
+															<button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+														</form>
+													</td>
+												</tr>
+
+												<%}%>
+											</tbody>
+										</table>
+									</div>
+								</div>
+
+								<div class="col p-3 border border-2 border-dark-subtle rounded-2">
+									<form method="POST" action="/child/create">
+										<div class="mb-3">
+											<label for="childName" class="form-label">Child Name</label>
+											<input type="text" name="childName" id="childName" class="form-control" placeholder="Name" />
+										</div>
+										<div class="mb-3">
+											<label for="childIp" class="form-label">IP</label>
+											<input type="text" name="childIp" id="childIp" class="form-control" placeholder="192.168.0.0" />
+										</div>
+										<div class="mb-3">
+											<label for="childRefreshInterval" class="form-label">Refresh Interval (Hours)</label>
+											<input
+												type="number"
+												max="24"
+												name="childRefreshInterval"
+												id="childRefreshInterval"
+												class="form-control"
+												placeholder="24"
+												value="24" />
+										</div>
+										<div class="mb-3">
+											<label for="childMaxPoints" class="form-label">Points Target</label>
+											<input
+												type="number"
+												max="999"
+												name="childMaxPoints"
+												id="childMaxPoints"
+												class="form-control"
+												placeholder="30" />
+										</div>
+
+										<button type="submit" class="btn btn-success">
+											<i class="bi bi-plus-square display-6"></i>
+										</button>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer justify-content-center">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div
+			class="modal fade"
+			id="manageTasks"
+			tabindex="-1"
+			role="dialog"
+			aria-labelledby="manageTasks"
+			aria-hidden="true">
+			<div class="modal-dialog modal-lg" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="manageTasksTitle"><i class="bi bi-list-ul"></i> Manage Tasks</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col">
+									<div class="table-responsive">
+										<table class="table table-striped table-primary text-center">
+											<thead>
+												<tr>
+													<th scope="col">Name</th>
+													<th scope="col">Points</th>
+													<th scope="col" colspan="2">QR CODE</th>
+													<th scope="col"><i class="bi bi-trash"></i></th>
+												</tr>
+											</thead>
+											<tbody>
+												<% for (const task of tasks) { %>
+												<tr class="">
+													<td><%= task.taskName %></td>
+													<td><%= task.taskPoints%></td>
+													<td>
+														<button
+															class="btn btn-outline-secondary"
+															onclick="printQR('<%= task.id %>', '<%= task.taskName%>', '<%=task.taskPoints%>')">
+															<i class="bi bi-printer"></i>
+														</button>
+													</td>
+													<td>
+														<button
+															class="btn btn-outline-secondary"
+															onclick="showQRCode('<%= task.id %>','<%=task.taskName%>','<%=task.taskPoints%>')"
+															data-bs-toggle="modal"
+															data-bs-target="#qrCodeModal">
+															<i class="bi bi-share"></i>
+														</button>
+													</td>
+													<td>
+														<form method="POST" id="delete-<%=task.taskName%>" action="/task/delete/<%= task.id %>">
+															<button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+														</form>
+													</td>
+												</tr>
+
+												<%}%>
+											</tbody>
+										</table>
+									</div>
+								</div>
+
+								<div class="col p-3 border border-2 border-dark-subtle rounded-2">
+									<form method="POST" action="/task/create">
+										<div class="mb-3">
+											<label for="taskName" class="form-label">Task Name</label>
+											<input
+												type="text"
+												name="taskName"
+												id="taskName"
+												class="form-control"
+												placeholder="Brush Your Teeth" />
+										</div>
+										<div class="mb-3">
+											<label for="taskPoints" class="form-label">Points</label>
+											<input
+												type="number"
+												max="999"
+												name="taskPoints"
+												id="taskPoints"
+												class="form-control"
+												placeholder="10" />
+										</div>
+										<button type="submit" class="btn btn-success">
+											<i class="bi bi-plus-square display-6"></i>
+										</button>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer justify-content-center">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- ShowQR Modal -->
+		<div
+			class="modal fade"
+			id="qrCodeModal"
+			tabindex="-1"
+			role="dialog"
+			aria-labelledby="qrCodeModal"
+			aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content w-auto">
+					<div class="modal-header">
+						<h5 class="modal-title" id="qrCodeModalTitle">QR Code Title</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<img id="qrCodeImg" width="500" height="500" alt="" />
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			async function printQR(id, name, points) {
+				try {
+					const url = `/task/${id}/qr`;
+					const printWindow = window.open("", "_blank");
+					const printDocument = printWindow.document;
+					const response = await fetch(url);
+					const qr = await response.text();
+					printDocument.open();
+					printDocument.write(`
+						<html>
+						<head>
+							<title>${name} Task QR Code</title>
+							<style>
+								img {
+									/* Adjust the size as needed */
+									width: 500px;
+									height: 500px;
+								}
+							</style>
+						</head>
+						<body>
+							<h1>${name}</h1>
+							<img src=${qr} width="500" height=500></img>
+							<h1>${points} Points </h1>
+						</body>
+						</html>
+					`);
+					printDocument.close();
+					printWindow.onbeforeunload = function () {
+						printWindow.close();
+					};
+
+					printWindow.onload = function () {
+						printWindow.print();
+					};
+				} catch (error) {
+					console.error(`An Error has occurred: ${error}`);
+				}
+			}
+		</script>
+
+		<script>
+			async function showQRCode(id, name, points) {
+				try {
+					const url = `/task/${id}/qr`;
+					const response = await fetch(url);
+					const qr = await response.text();
+					const modalImg = document.getElementById("qrCodeImg");
+					const modalTitle = document.getElementById("qrCodeModalTitle");
+					modalImg.src = qr;
+					modalTitle.innerText = name + " -- " + points + " Points";
+				} catch (error) {
+					console.error(`An Error has occured: ${error}`);
+				}
+			}
+		</script>
+
+		<!-- change url after load -->
+		<script>
+			document.addEventListener("DOMContentLoaded", () => {
+				const urlWithoutMessage = window.location.pathname;
+				history.replaceState({}, document.title, urlWithoutMessage);
+			});
+		</script>
+		<script
+			src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
+			integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
+			crossorigin="anonymous"></script>
+	</body>
+</html>
