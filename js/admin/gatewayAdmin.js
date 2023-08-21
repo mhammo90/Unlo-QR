@@ -41,7 +41,7 @@ function redirectTraffic(ip, port) {
 // GENERAL FIREWALL RULES ON START //
 function intialiseFirewall() {
 	// ALLOWED TRAFFIC TO ADMIN PORT //
-	ipTables.allow(
+	iptables.allow(
 		{
 			protocol: tcp,
 			src: process.env.ADMIN_IP,
@@ -52,12 +52,14 @@ function intialiseFirewall() {
 			if (err) {
 				console.error("Error adding rule:", err);
 			} else {
-				console.log(`${process.env.ADMIN_PORT} FIREWALL RULE ADDED FOR ${process.env.ADMIN_IP}`);
+				console.log(
+					`\x1b[1;36mFIREWALL:\x1b[0m ${process.env.ADMIN_PORT} FIREWALL RULE ADDED FOR ${process.env.ADMIN_IP}`
+				);
 			}
 		}
 	);
 	// ALLOWED TRAFFIC TO USER PORT //
-	ipTables.allow(
+	iptables.allow(
 		{
 			protocol: tcp,
 			dport: process.env.USER_PORT,
@@ -67,12 +69,12 @@ function intialiseFirewall() {
 			if (err) {
 				console.error("Error adding rule:", err);
 			} else {
-				console.log(`ALLOW ALL TO ${process.env.USER_PORT} RULE ADDED`);
+				console.log(`\x1b[1;36mFIREWALL:\x1b[0m ALLOW ALL TO ${process.env.USER_PORT} RULE ADDED`);
 			}
 		}
 	);
 	// DENIED TRAFFIC TO ADMIN PORT //
-	ipTables.drop(
+	iptables.drop(
 		{
 			protocol: "tcp",
 			dport: process.env.ADMIN_PORT,
@@ -82,7 +84,7 @@ function intialiseFirewall() {
 			if (err) {
 				console.error("Error adding rule:", err);
 			} else {
-				console.log(`DENY ${process.env.ADMIN_PORT} added`);
+				console.log(`\x1b[1;36mFIREWALL:\x1b[0m DENY ${process.env.ADMIN_PORT} added`);
 			}
 		}
 	);
@@ -106,6 +108,7 @@ async function blockChild(cName) {
 		console.error(`Error blocking ${cName}: ${error}`);
 	}
 }
+
 // UNBLOCK CHILD //
 async function unblockChild(cName) {
 	const childIP = getIP(cName);
@@ -162,16 +165,14 @@ async function refreshHelper() {
 		await Promise.all(refreshes);
 	} catch (error) {
 		console.error(`Error: ${error}`);
-	} finally {
-		// RUN REFRESH TIMER //
-		refreshTimer();
 	}
 }
 
-// EXECUTES REFRESHHELPER AFTER 30 MINS //
+// EXECUTES REFRESHHELPER EVERY 30 MINS //
 function refreshTimer() {
-	setTimeout(refreshHelper, 1800000);
-	console.log("refreshTimer Trigerred");
+	setInterval(refreshHelper, 1800000);
+	console.log("\x1b[33mrefreshTimer:\x1b[0m \x1b[32mRefresh Interval \x1b[32;4mStarted\x1b[0m");
 }
 
+// MODULE EXPORTS //
 module.exports = { intialiseFirewall, unblockChild, blockChild, refreshTimer, refreshHelper, refresh };

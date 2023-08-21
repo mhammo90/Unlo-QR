@@ -38,16 +38,15 @@ async function getAllTasks() {
 	}
 }
 
-// SHOW TASK QR CODE - returns QRCODE base64 STRING //
-async function showTaskQR(taskID) {
+// SHOW TASK QR CODE - returns BASE/64 img //
+async function showTaskQR(id) {
 	try {
-		const task = await importTask(taskID);
-
-		return task.showQR();
+		var task = await importTask(id);
+		return task.qrCode;
 	} catch (error) {
-		console.error(`An error occured while showing the QR code: ${error}`);
+		console.error(`An error has occured: ${error}`);
 	}
 }
 
-// EXPORT getTaskIDs(), getTask(), getAllTasks() //
+// MODULE EXPORTS //
 module.exports = { getTaskIDs, getTaskNames, getAllTasks, showTaskQR };

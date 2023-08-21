@@ -4,6 +4,7 @@ const path = require("path");
 
 // IMPORT CLASS //
 const Child = require(relPath("./js/classes/Child"));
+
 // DATA LOCATION //
 const childDataLoc = relPath(process.env.CHILD_DATA) || relPath("./data/children");
 
@@ -48,7 +49,7 @@ async function updateChild(cName, key, value) {
 			var output = JSON.stringify(child, null, 2);
 			try {
 				await fs.writeFile(filePath, output, "utf-8");
-				console.log(`${name} updated successfully`);
+				console.log(`${name} updated successfully: ${key}`);
 			} catch (error) {
 				console.error(`Error updating ${name}: ${error}`);
 			}
@@ -58,4 +59,29 @@ async function updateChild(cName, key, value) {
 	}
 }
 
-module.exports = { importChild, updateChild, Child, childDataLoc };
+// DELETE CHILD FUNCTION (ASYNC)
+async function deleteChild(cName) {
+	var name = cName.charAt(0).toUpperCase() + cName.slice(1);
+	var filePath = path.join(childDataLoc, `${name}.json`);
+	try {
+		await fs.unlink(filePath);
+	} catch (error) {
+		console.error(`An Error has occured: ${error}`);
+	}
+}
+
+// CREATE CHILD (ASYNC) //
+async function createChild(name, ip, refresh, max) {
+	var newChild = new Child(name, ip, refresh, max);
+	var filePath = path.join(childDataLoc, `${newChild.name}.json`);
+	var output = JSON.stringify(newChild, null, 2);
+	try {
+		await fs.writeFile(filePath, output, "utf-8");
+		console.log(`${newChild.name} created Successfully`);
+	} catch (error) {
+		console.error(`Error creating child: ${error}`);
+	}
+}
+
+// MODULE EXPORTS //
+module.exports = { createChild, importChild, updateChild, deleteChild, Child, childDataLoc };

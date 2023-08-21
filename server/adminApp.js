@@ -5,7 +5,6 @@ const bodyParser = require("body-parser");
 
 // ROUTE FILES //
 const adminRoutes = require(relPath("./routes/admin/adminRoutes"));
-const createRoutes = require(relPath("./routes/admin/createRoutes"));
 const taskRoutes = require(relPath("./routes/admin/taskRoutes"));
 const childRoutes = require(relPath("./routes/admin/childRoutes"));
 
@@ -23,7 +22,6 @@ adminApp.use(bodyParser.json());
 
 // SET ROUTES //
 adminApp.use("/", adminRoutes);
-adminApp.use("/create", createRoutes);
 adminApp.use("/task", taskRoutes);
 adminApp.use("/child", childRoutes);
 

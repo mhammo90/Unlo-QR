@@ -1,14 +1,19 @@
+// REQUIRES AND IMPORTS //
 const express = require("express");
 const router = express.Router();
-
-const { getAllChildNames } = require(relPath("./js/children/helper"));
-const { getTaskIDs } = require(relPath("./js/tasks/tasks.js"));
+const { getAllChildren } = require(relPath("./js/children/helper"));
+const { getAllTasks } = require(relPath("./js/tasks/tasks.js"));
 
 // "/" ADMIN ROUTE //
 router.get("/", async (req, res) => {
-	const tasksTotal = await getTaskIDs().length;
-	const childrenTotal = await getAllChildNames().length;
-	res.render("index", { tasksTotal, childrenTotal });
+	try {
+		const tasks = await getAllTasks();
+		const children = await getAllChildren();
+		const message = req.query.message || null;
+		res.render("index", { tasks, children, message });
+	} catch (error) {
+		console.error(`An Error has occured: ${error}`);
+	}
 });
 
 module.exports = router;
