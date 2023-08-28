@@ -41,6 +41,7 @@ function redirectTraffic(ip, port) {
 // GENERAL FIREWALL RULES ON START //
 function intialiseFirewall() {
 	// ALLOWED TRAFFIC TO ADMIN PORT //
+	console.log("1");
 	iptables.allow(
 		{
 			protocol: "tcp",
@@ -58,7 +59,9 @@ function intialiseFirewall() {
 			}
 		}
 	);
+	console.log("1a");
 	// ALLOWED TRAFFIC TO USER PORT //
+	console.log("2");
 	iptables.allow(
 		{
 			protocol: "tcp",
@@ -73,7 +76,9 @@ function intialiseFirewall() {
 			}
 		}
 	);
+	console.log("2a");
 	// DENIED TRAFFIC TO ADMIN PORT //
+	console.log("3");
 	iptables.drop(
 		{
 			protocol: "tcp",
@@ -88,6 +93,7 @@ function intialiseFirewall() {
 			}
 		}
 	);
+	console.log("3a");
 }
 
 // BLOCK CHILD //
