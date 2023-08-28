@@ -10,6 +10,7 @@ RUN npm install
 
 ## CUSTOM APPLICATION DATA AND FILES ##
 # CREATE EMPTY DATA DIRS #
+RUN mkdir data
 RUN mkdir data/children
 RUN mkdir data/tasks
 
