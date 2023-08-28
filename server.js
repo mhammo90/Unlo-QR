@@ -80,6 +80,8 @@ else {
 	});
 }
 
+console.log(`\x1b[33mADMIN IP:\x1b[0m \x1b[32m${process.env.ADMIN_IP}\x1b[0m`);
+
 // APP INITIALISATION //
 // REQUIRES //
 const { intialiseFirewall } = require("./js/admin/gatewayAdmin");
