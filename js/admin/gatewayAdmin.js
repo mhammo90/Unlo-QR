@@ -61,7 +61,7 @@ function intialiseFirewall() {
 	// ALLOWED TRAFFIC TO USER PORT //
 	iptables.allow(
 		{
-			protocol: tcp,
+			protocol: "tcp",
 			dport: process.env.USER_PORT,
 			sudo: true,
 		},
