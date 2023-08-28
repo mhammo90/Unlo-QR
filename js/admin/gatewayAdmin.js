@@ -40,60 +40,32 @@ function redirectTraffic(ip, port) {
 }
 // GENERAL FIREWALL RULES ON START //
 function intialiseFirewall() {
-	// ALLOWED TRAFFIC TO ADMIN PORT //
-	console.log("1");
-	iptables.allow(
-		{
+	try {
+		// ALLOWED TRAFFIC TO ADMIN PORT //
+		iptables.allow({
 			protocol: "tcp",
 			src: process.env.ADMIN_IP,
 			dport: process.env.ADMIN_PORT,
 			sudo: true,
-		},
-		(err) => {
-			if (err) {
-				console.error("Error adding rule:", err);
-			} else {
-				console.log(
-					`\x1b[1;36mFIREWALL:\x1b[0m ${process.env.ADMIN_PORT} FIREWALL RULE ADDED FOR ${process.env.ADMIN_IP}`
-				);
-			}
-		}
-	);
-	console.log("1a");
-	// ALLOWED TRAFFIC TO USER PORT //
-	console.log("2");
-	iptables.allow(
-		{
+		});
+		console.log(`\x1b[1;36mFIREWALL:\x1b[0m ${process.env.ADMIN_PORT} FIREWALL RULE ADDED FOR ${process.env.ADMIN_IP}`);
+		// ALLOWED TRAFFIC TO USER PORT //
+		iptables.allow({
 			protocol: "tcp",
 			dport: process.env.USER_PORT,
 			sudo: true,
-		},
-		(err) => {
-			if (err) {
-				console.error("Error adding rule:", err);
-			} else {
-				console.log(`\x1b[1;36mFIREWALL:\x1b[0m ALLOW ALL TO ${process.env.USER_PORT} RULE ADDED`);
-			}
-		}
-	);
-	console.log("2a");
-	// DENIED TRAFFIC TO ADMIN PORT //
-	console.log("3");
-	iptables.drop(
-		{
+		});
+		console.log(`\x1b[1;36mFIREWALL:\x1b[0m ALLOW ALL TO ${process.env.USER_PORT} RULE ADDED`);
+		// DENIED TRAFFIC TO ADMIN PORT //
+		iptables.drop({
 			protocol: "tcp",
 			dport: process.env.ADMIN_PORT,
 			sudo: true,
-		},
-		(err) => {
-			if (err) {
-				console.error("Error adding rule:", err);
-			} else {
-				console.log(`\x1b[1;36mFIREWALL:\x1b[0m DENY ${process.env.ADMIN_PORT} added`);
-			}
-		}
-	);
-	console.log("3a");
+		});
+		console.log(`\x1b[1;36mFIREWALL:\x1b[0m DENY ${process.env.ADMIN_PORT} added`);
+	} catch (error) {
+		console.error("Error adding rule:", error);
+	}
 }
 
 // BLOCK CHILD //
