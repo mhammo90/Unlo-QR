@@ -43,7 +43,7 @@ function intialiseFirewall() {
 	// ALLOWED TRAFFIC TO ADMIN PORT //
 	iptables.allow(
 		{
-			protocol: tcp,
+			protocol: "tcp",
 			src: process.env.ADMIN_IP,
 			dport: process.env.ADMIN_PORT,
 			sudo: true,
