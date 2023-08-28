@@ -39,8 +39,8 @@ const mainPort = process.env.MAIN_PORT || 8080;
 
 // HTTPS CONFIG //
 const httpsOptions = {
-	key: process.env.HTTPS_KEY,
-	cert: process.env.HTTPS_CERT,
+	key: Buffer.from(process.env.HTTPS_KEY, "base64").toString("ascii"),
+	cert: Buffer.from(process.env.HTTPS_CERT, "base64").toString("ascii"),
 };
 
 // IMPORT MAINAPP //
