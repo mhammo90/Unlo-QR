@@ -2,6 +2,7 @@
 require("dotenv").config();
 const express = require("express");
 const fetch = require("node-fetch");
+const https = require("https");
 
 // -- GLOBAL FUNCTIONS -- //
 // RELATIVE PATH TO ABSOLUTE PATH //
@@ -36,25 +37,51 @@ global.notifyAlert = notifyAlert;
 const adminPort = process.env.ADMIN_PORT || 8081;
 const mainPort = process.env.MAIN_PORT || 8080;
 
+// HTTPS CONFIG //
+const httpsOptions = {
+	key: process.env.HTTPS_KEY,
+	cert: process.env.HTTPS_CERT,
+};
+
 // IMPORT MAINAPP //
 const mainApp = require(relPath("./server/mainApp"));
-
-// mainApp LISTENING //
-mainApp.listen(mainPort, () => {
-	console.log("\x1b[33mCHILD Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${mainPort}\x1b[0m`);
-});
 
 // IMPORT ADMINAPP //
 const adminApp = require(relPath("./server/adminApp"));
 
-// adminApp LISTENING //
-adminApp.listen(adminPort, () => {
-	console.log("\x1b[33mADMIN Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${adminPort}\x1b[0m`);
-});
+// IF HTTPS ENABLED IN .ENV //
+if (process.env.HTTPS) {
+	// mainApp HTTPS LISTENING //
+	const mainAppHTTPS = https.createServer(httpsOptions, mainApp);
+	mainAppHTTPS.listen(mainPort, () => {
+		console.log(
+			"\x1b[33mCHILD Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${mainPort} (HTTPS)\x1b[0m`
+		);
+	});
+	// adminApp HTTPS LISTENING //
+	const adminAppHTTPS = https.createServer(httpsOptions, adminApp);
+	adminAppHTTPS.listen(adminPort, () => {
+		console.log(
+			"\x1b[33mADMIN Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${adminPort} (HTTPS)\x1b[0m`
+		);
+	});
+}
+// IF HTTPS COMMENTED OUT //
+else {
+	// mainApp LISTENING //
+	mainApp.listen(mainPort, () => {
+		console.log("\x1b[33mCHILD Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${mainPort}\x1b[0m`);
+	});
+
+	// adminApp LISTENING //
+	adminApp.listen(adminPort, () => {
+		console.log("\x1b[33mADMIN Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${adminPort}\x1b[0m`);
+	});
+}
 
 // APP INITIALISATION //
 // REQUIRES //
-//const { intialiseFirewall } = require("./js/admin/gatewayAdmin");
+const { intialiseFirewall } = require("./js/admin/gatewayAdmin");
 const { refreshHelper, refreshTimer } = require(relPath("./js/admin/gatewayAdmin"));
 
 // STARTUP FUNCTIONS //
@@ -62,4 +89,4 @@ const { refreshHelper, refreshTimer } = require(relPath("./js/admin/gatewayAdmin
 refreshTimer();
 
 // INTIALISE THE FIREWALL AND SETUP MAIN RULES //
-//intialiseFirewall()
+intialiseFirewall();
