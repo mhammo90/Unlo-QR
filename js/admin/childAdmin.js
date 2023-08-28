@@ -6,7 +6,7 @@ const path = require("path");
 const Child = require(relPath("./js/classes/Child"));
 
 // DATA LOCATION //
-const childDataLoc = relPath(process.env.CHILD_DATA) || relPath("./data/children");
+const childDataLoc = relPath("./data/children");
 
 // IMPORT CHILD (ASYNC) //
 async function importChild(cName) {

@@ -5,7 +5,7 @@ const path = require("path");
 // IMPORT CLASS //
 var Task = require(relPath("./js/classes/Task"));
 // DATA LOCATION //
-var taskDataLoc = relPath(process.env.TASK_DATA) || relPath("./data/tasks");
+var taskDataLoc = relPath("./data/tasks");
 
 // IMPORT TASK AS OBJECT //
 async function importTask(taskID) {

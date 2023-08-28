@@ -9,8 +9,10 @@ COPY package*.json ./
 RUN npm install
 
 ## CUSTOM APPLICATION DATA AND FILES ##
-# CREATE EMPTY DATA DIR #
-RUN mkdir data
+# CREATE EMPTY DATA DIRS #
+RUN mkdir data/children
+RUN mkdir data/tasks
+
 # COPY DATA FOLDERS AND FILES #
 COPY js/ ./js/
 COPY pages/ ./pages/
