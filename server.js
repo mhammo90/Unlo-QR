@@ -36,6 +36,7 @@ global.notifyAlert = notifyAlert;
 // PORTS SET BY .env or MANUALLY
 const adminPort = process.env.ADMIN_PORT || 8081;
 const mainPort = process.env.MAIN_PORT || 8080;
+const serverIP = "0.0.0.0";
 
 // HTTPS CONFIG //
 const httpsOptions = {
@@ -53,14 +54,14 @@ const adminApp = require(relPath("./server/adminApp"));
 if (process.env.HTTPS) {
 	// mainApp HTTPS LISTENING //
 	const mainAppHTTPS = https.createServer(httpsOptions, mainApp);
-	mainAppHTTPS.listen(mainPort, () => {
+	mainAppHTTPS.listen(mainPort, serverIP, () => {
 		console.log(
 			"\x1b[33mCHILD Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${mainPort} (HTTPS)\x1b[0m`
 		);
 	});
 	// adminApp HTTPS LISTENING //
 	const adminAppHTTPS = https.createServer(httpsOptions, adminApp);
-	adminAppHTTPS.listen(adminPort, () => {
+	adminAppHTTPS.listen(adminPort, serverIP, () => {
 		console.log(
 			"\x1b[33mADMIN Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${adminPort} (HTTPS)\x1b[0m`
 		);
@@ -69,12 +70,12 @@ if (process.env.HTTPS) {
 // IF HTTPS COMMENTED OUT //
 else {
 	// mainApp LISTENING //
-	mainApp.listen(mainPort, () => {
+	mainApp.listen(mainPort, serverIP, () => {
 		console.log("\x1b[33mCHILD Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${mainPort}\x1b[0m`);
 	});
 
 	// adminApp LISTENING //
-	adminApp.listen(adminPort, () => {
+	adminApp.listen(adminPort, serverIP, () => {
 		console.log("\x1b[33mADMIN Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${adminPort}\x1b[0m`);
 	});
 }
