@@ -40,6 +40,7 @@ The project is developed using an agile approach, with a focus on incremental de
 
 ## Technologies Used
 
+- ntfy.sh notifications (https://ntfy.sh)
 - Node.js
 - Express.js
 - ejs Templates
