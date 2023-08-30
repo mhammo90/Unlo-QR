@@ -84,12 +84,7 @@ console.log(`\x1b[33mADMIN IP:\x1b[0m \x1b[32m${process.env.ADMIN_IP}\x1b[0m`);
 
 // APP INITIALISATION //
 // REQUIRES //
-const { intialiseFirewall } = require("./js/admin/gatewayAdmin");
-const { refreshHelper, refreshTimer } = require(relPath("./js/admin/gatewayAdmin"));
-
-// STARTUP FUNCTIONS //
-// EXECUTES REFRESHTIMER (SETINTERVAL) TO RUN A REFRESH CYCLE EVERY 1800000 MS (30 MINS) //
-refreshTimer();
+const { startFirewall } = require(relPath("./js/admin/gatewayAdmin"));
 
 // INTIALISE THE FIREWALL AND SETUP MAIN RULES //
-intialiseFirewall();
+startFirewall();
