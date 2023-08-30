@@ -12,7 +12,7 @@ function newFWChain(chain) {
 	iptables.newRule({ chain: chain, action: "-N" });
 }
 function newFWNATChain(chain) {
-	iptables.newRule({ chain: chain, action: "-t nat -N" });
+	iptables.newRule({ chain: chain, action: "-N -t nat " });
 }
 
 function newTopJumpRule(chain, target) {
@@ -22,7 +22,7 @@ function newTopJumpRule(chain, target) {
 
 function newTopNATJumpRule(chain, target) {
 	const chain1 = chain + " 1";
-	iptables.newRule({ chain: chain1, action: "-t nat -I", target: target });
+	iptables.newRule({ chain: chain1, action: "-I -t nat", target: target });
 }
 
 const customChains = ["UNLOCKER_IN", "UNLOCKER_FW", "UNLOCKER_PRE"];
@@ -48,7 +48,7 @@ function flushCustomChains() {
 		iptables.newRule({ chain: chain, action: "-F" });
 	}
 	function flushNAT(chain) {
-		iptables.newRule({ chain: chain, action: "-t nat -F" });
+		iptables.newRule({ chain: chain, action: "-F -t nat" });
 	}
 
 	flush(customChains[0]);
@@ -162,6 +162,7 @@ async function initialChildRules() {
 async function startFirewall() {
 	fwConsole("-- STARTING FIREWALL --");
 	try {
+		await newFirewallLogic();
 		await initialGeneralRules();
 		await initialChildRules();
 		fwConsole(" ** FIREWALL STARTED **");
@@ -247,11 +248,30 @@ async function refreshHelper() {
 	}
 }
 
+async function newFirewallLogic() {
+	try {
+		await iptables.list(customChains[0], (rules) => {
+			if (rules && rules.length === 0) {
+				fwConsole("No Custom Chains Detected - Setting up New Chains");
+				newFirewallSetup();
+			} else {
+				fwConsole("Custom Chains Found - Skipping Setup..");
+			}
+		});
+	} catch (error) {
+		console.error(`An Error occured with the new firewall logic: ${error}`);
+	}
+}
+
 // EXECUTES REFRESHHELPER EVERY 30 MINS //
 function refreshTimer() {
 	setInterval(refreshHelper, 1800000);
 	console.log("\x1b[33mrefreshTimer:\x1b[0m \x1b[32mRefresh Interval \x1b[32;4mStarted\x1b[0m");
 }
+
+iptables.list(customChains[0], (rules) => {
+	console.log(rules);
+});
 
 // MODULE EXPORTS //
 module.exports = { startFirewall, unblockChild, blockChild };
