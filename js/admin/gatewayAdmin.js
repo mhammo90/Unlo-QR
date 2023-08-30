@@ -1,15 +1,7 @@
 // REQUIRES AND IMPORTS //
-
-// READD RELPATH AFTER TESTING
-const {
-	getIP,
-	setStatus,
-	setTimes,
-	getStatus,
-	checkBlockInterval,
-	getAllChildNames,
-	refreshPoints,
-} = require("./js/children/helper");
+const { getIP, setStatus, setTimes, getStatus, checkBlockInterval, getAllChildNames, refreshPoints } = require(relPath(
+	"./js/children/helper"
+));
 const iptables = require("iptables");
 
 function fwConsole(message) {
