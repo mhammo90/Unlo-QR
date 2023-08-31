@@ -13,45 +13,35 @@ const exec = promisify(require("child_process").exec);
 
 async function iptablesExec(command) {
 	try {
-		const commandStr = "iptables" + command;
-		const { stdout, stderr } = await exec(commandStr);
-		if (stderr) {
-			fwConsole(`Error with firewall rule: ${stderr}`);
-			return;
-		}
-		fwConsole(`Firewall Command Executed: ${stdout}`);
+		const commandStr = "iptables-legacy " + command;
+		await exec(commandStr, { stdio: ["ignore", "ignore", "ignore"] });
 	} catch (error) {
-		console.error(`An Error has occured: ${error}`);
+		fwConsole(`FirewallExec Error: ${error}`);
 	}
 }
 
 async function ruleCheck(chain, rule) {
 	try {
-		const { stdout, stderr } = await exec(`iptables -C ${chain} ${rule}`);
-		if (stderr) {
-			return false;
-		} else {
-			return true;
-		}
+		await exec(`iptables-legacy -C ${chain} ${rule}`, {
+			stdio: ["ignore", "ignore", "ignore"],
+		});
+		return true;
 	} catch (error) {
-		console.error(`An error has occured: ${error}`);
+		fwConsole(`${rule} failed ruleCheck`);
 	}
 }
 
 async function chainCheck(chain, nat) {
 	try {
 		if (nat === true) {
-			const { stdout, stderr } = await exec(`iptables -t nat -L ${chain}`);
+			var str = `-t nat -L ${chain}`;
 		} else {
-			const { stdout, stderr } = await exec(`iptables -L ${chain}`);
+			var str = `-L ${chain}`;
 		}
-		if (stderr) {
-			return false;
-		} else {
-			return true;
-		}
+		await exec(`iptables-legacy ${str}`, { stdio: ["ignore", "ignore", "ignore"] });
+		return true;
 	} catch (error) {
-		console.error(`An error has occured: ${error}`);
+		fwConsole(`${chain} failed chainCheck`);
 	}
 }
 
@@ -64,7 +54,7 @@ async function newFWChain(chain) {
 			fwConsole(`CUSTOM ${chain} CREATED`);
 		}
 	} catch (error) {
-		console.error(`An error has occured: ${error}`);
+		console.error(`newFWChain Error: ${error}`);
 	}
 }
 
@@ -77,7 +67,7 @@ async function newFWNATChain(chain) {
 			fwConsole(`CUSTOM NAT ${chain} CREATED`);
 		}
 	} catch (error) {
-		console.error(`An Error has occured: ${error}`);
+		console.error(`newFWNATChain Error: ${error}`);
 	}
 }
 
@@ -90,7 +80,7 @@ async function newTopJumpRule(chain, target) {
 			fwConsole(`CUSTOM ${chain} --> ${target} JUMP RULE CREATED`);
 		}
 	} catch (error) {
-		console.error(`An error has occured: ${error}`);
+		console.error(`newTopJumpRule Error: ${error}`);
 	}
 }
 
@@ -103,7 +93,7 @@ async function newTopNATJumpRule(chain, target) {
 			fwConsole(`CUSTOM NAT ${chain} --> ${target} JUMP RULE CREATED`);
 		}
 	} catch (error) {
-		console.error(`An error has occured: ${error}`);
+		console.error(`newTopNATJumpRule Error: ${error}`);
 	}
 }
 
@@ -111,10 +101,10 @@ const customChains = ["UNLOCKER_IN", "UNLOCKER_FW", "UNLOCKER_PRE"];
 
 async function newRule(chain, rule, action) {
 	try {
-		const str = rule + `-j ${action}`;
+		const str = `-A ${chain} ${rule} -j ${action}`;
 		const check = await ruleCheck(chain, str);
 		if (!check) {
-			await iptablesExec(str);
+			await iptablesExec(`${str}`);
 			fwConsole(`${action} ${rule} created in ${chain}`);
 		}
 	} catch (error) {
@@ -138,26 +128,30 @@ async function firewallSetup() {
 }
 
 async function flushCustomChains() {
-	async function flush(chain) {
-		try {
-			const str = `-F ${chain}`;
-			await iptablesExec(str);
-		} catch (error) {
-			console.error(`An error occured while flushing ${chain}: ${error}`);
+	try {
+		async function flush(chain) {
+			try {
+				const str = `-F ${chain}`;
+				await iptablesExec(str);
+			} catch (error) {
+				console.error(`An error occured while flushing ${chain}: ${error}`);
+			}
 		}
-	}
-	async function flushNAT(chain) {
-		try {
-			const str = `-t nat -F ${chain}`;
-			await iptablesExec(str);
-		} catch (error) {
-			console.error(`An error occured while flushing nat ${chain}: ${error}`);
+		async function flushNAT(chain) {
+			try {
+				const str = `-t nat -F ${chain}`;
+				await iptablesExec(str);
+			} catch (error) {
+				console.error(`An error occured while flushing nat ${chain}: ${error}`);
+			}
 		}
-	}
 
-	flush(customChains[0]).then(fwConsole(`${customChains[0]} FLUSHED`));
-	flush(customChains[1]).then(fwConsole(`${customChains[1]} FLUSHED`));
-	flushNAT(customChains[2]).then(fwConsole(`${customChains[2]} FLUSHED`));
+		flush(customChains[0]).then(fwConsole(`${customChains[0]} FLUSHED`));
+		flush(customChains[1]).then(fwConsole(`${customChains[1]} FLUSHED`));
+		flushNAT(customChains[2]).then(fwConsole(`${customChains[2]} FLUSHED`));
+	} catch (error) {
+		console.error(`An error occured flushing the custom chains: ${error}`);
+	}
 }
 
 async function adminRules(adminIP, adminPort) {
@@ -170,15 +164,15 @@ async function adminRules(adminIP, adminPort) {
 		await iptablesExec(dropStr);
 		fwConsole(`All other IP addresses blocked from ${adminPort} for security`);
 	} catch (error) {
-		console.error(`An error has occured: ${error}`);
+		console.error(`An error occured with Admin Rules: ${error}`);
 	}
 }
 
 async function redirectTraffic(childIP, port, method) {
 	try {
+		const natChain = customChains[2];
 		const astr = `-t nat -A ${natChain} -p tcp -s ${childIP} --dport ${port} -j REDIRECT --to-port ${process.env.USER_PORT}`;
 		const dstr = `-t nat -D ${natChain} -p tcp -s ${childIP} --dport ${port} -j REDIRECT --to-port ${process.env.USER_PORT}`;
-		const natChain = customChains[2];
 
 		if (method === "add") {
 			const check = await ruleCheck(natChain, astr);
@@ -272,22 +266,22 @@ async function initialGeneralRules() {
 	}
 }
 
-async function initialChildRules() {
+async function childrenFirewallRules() {
 	try {
 		fwConsole(`Initial Child Rules Configuration....`);
 		const children = await getAllChildNames();
 		for (const child of children) {
 			const status = await getStatus(child);
 			if (status === "UNBLOCKED") {
-				fwConsole(`${cName} is Unblocked - Unblocked Traffic Rules`);
+				fwConsole(`${child} is Unblocked - Unblocked Traffic Rules`);
 				await unblockTraffic(child);
 			} else {
-				fwConsole(`${cName} is Blocked - Blocked Traffic Rules`);
+				fwConsole(`${child} is Blocked - Blocked Traffic Rules`);
 				await blockTraffic(child);
 			}
 		}
 	} catch (error) {
-		console.error(`An error has occurred with the initial child rules: ${error}`);
+		console.error(`An error has occurred with children firewall rules: ${error}`);
 	}
 }
 
@@ -296,7 +290,7 @@ async function startFirewall() {
 	try {
 		await firewallSetup();
 		await initialGeneralRules();
-		await initialChildRules();
+		await childrenFirewallRules();
 		fwConsole(" ** FIREWALL STARTED **");
 		refreshTimer();
 	} catch (error) {
@@ -306,9 +300,9 @@ async function startFirewall() {
 
 // BLOCK CHILD //
 async function blockChild(cName) {
-	const childIP = getIP(cName);
 	try {
-		await blockTraffic(cName);
+		const childIP = getIP(cName);
+		await blockTraffic(childIP);
 		// SET CHILD STATUS TO BLOCKED //
 		await setStatus(cName, 1);
 		// NOTIFY ALERT //
@@ -320,9 +314,9 @@ async function blockChild(cName) {
 
 // UNBLOCK CHILD //
 async function unblockChild(cName) {
-	const childIP = getIP(cName);
 	try {
-		await unblockTraffic(cName);
+		const childIP = getIP(cName);
+		await unblockTraffic(childIP);
 		// SET CHILD STATUS TO UNBLOCKED //
 		await setStatus(cName, 0);
 		// SET BLOCKED TIMES TO NOW //
@@ -375,8 +369,9 @@ async function refreshHelper() {
 	const refreshes = children.map((child) => refreshLogic(child));
 	try {
 		await Promise.all(refreshes);
+		await childrenFirewallRules;
 	} catch (error) {
-		console.error(`Error: ${error}`);
+		console.error(`RefreshHelper Error: ${error}`);
 	}
 }
 
