@@ -2,6 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const { deleteChild, createChild } = require(relPath("./js/admin/childAdmin"));
+const { childrenFirewallRules } = require(relPath("./js/admin/gatewayAdmin"));
 
 // CREATE CHILD (/create/child) //
 router.post("/create", async (req, res) => {
@@ -10,6 +11,7 @@ router.post("/create", async (req, res) => {
 		await createChild(childName, childIp, childRefreshInterval, childMaxPoints);
 		var message = `Child: ${childName} created!`;
 		await notifyAlert(message, "Unlo-QR: Child CREATED");
+		await childrenFirewallRules();
 		res.redirect(`/?message=${encodeURIComponent(message)}`);
 	} catch (error) {
 		console.error(`An Error has occured: ${error}`);

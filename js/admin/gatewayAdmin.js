@@ -382,4 +382,4 @@ function refreshTimer() {
 }
 
 // MODULE EXPORTS //
-module.exports = { startFirewall, unblockChild, blockChild };
+module.exports = { startFirewall, unblockChild, blockChild, childrenFirewallRules };
