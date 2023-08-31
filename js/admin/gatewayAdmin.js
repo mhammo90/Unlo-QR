@@ -1,108 +1,238 @@
+const { emit } = require("process");
+
 // REQUIRES AND IMPORTS //
 const { getIP, setStatus, setTimes, getStatus, checkBlockInterval, getAllChildNames, refreshPoints } = require(relPath(
 	"./js/children/helper"
 ));
-const iptables = require("iptables");
-
 function fwConsole(message) {
 	console.log(`\x1b[1;36mFIREWALL:\x1b[0m ${message}`);
 }
 
-function newFWChain(chain) {
-	iptables.newRule({ chain: chain, action: "-N" });
-}
-function newFWNATChain(chain) {
-	iptables.newRule({ chain: chain, action: "-N -t nat " });
+const promisify = require("util").promisify;
+const exec = promisify(require("child_process").exec);
+
+async function iptablesExec(command) {
+	try {
+		const commandStr = "iptables" + command;
+		const { stdout, stderr } = await exec(commandStr);
+		if (stderr) {
+			fwConsole(`Error with firewall rule: ${stderr}`);
+			return;
+		}
+		fwConsole(`Firewall Command Executed: ${stdout}`);
+	} catch (error) {
+		console.error(`An Error has occured: ${error}`);
+	}
 }
 
-function newTopJumpRule(chain, target) {
-	const chain1 = chain + " 1";
-	iptables.newRule({ chain: chain1, action: "-I", target: target });
+async function ruleCheck(chain, rule) {
+	try {
+		const { stdout, stderr } = await exec(`iptables -C ${chain} ${rule}`);
+		if (stderr) {
+			return false;
+		} else {
+			return true;
+		}
+	} catch (error) {
+		console.error(`An error has occured: ${error}`);
+	}
 }
 
-function newTopNATJumpRule(chain, target) {
-	const chain1 = chain + " 1";
-	iptables.newRule({ chain: chain1, action: "-I -t nat", target: target });
+async function chainCheck(chain, nat) {
+	try {
+		if (nat === true) {
+			const { stdout, stderr } = await exec(`iptables -t nat -L ${chain}`);
+		} else {
+			const { stdout, stderr } = await exec(`iptables -L ${chain}`);
+		}
+		if (stderr) {
+			return false;
+		} else {
+			return true;
+		}
+	} catch (error) {
+		console.error(`An error has occured: ${error}`);
+	}
+}
+
+async function newFWChain(chain) {
+	try {
+		const check = await chainCheck(chain);
+		if (!check) {
+			const str = `-N ${chain}`;
+			iptablesExec(str);
+			fwConsole(`CUSTOM ${chain} CREATED`);
+		}
+	} catch (error) {
+		console.error(`An error has occured: ${error}`);
+	}
+}
+
+async function newFWNATChain(chain) {
+	try {
+		const check = await chainCheck(chain, true);
+		if (!check) {
+			const str = `-t nat -N ${chain}`;
+			iptablesExec(str);
+			fwConsole(`CUSTOM NAT ${chain} CREATED`);
+		}
+	} catch (error) {
+		console.error(`An Error has occured: ${error}`);
+	}
+}
+
+async function newTopJumpRule(chain, target) {
+	try {
+		const check = await ruleCheck(chain, `-j ${target}`);
+		if (!check) {
+			const str = `-I ${chain} 1 -j ${target}`;
+			iptablesExec(str);
+			fwConsole(`CUSTOM ${chain} --> ${target} JUMP RULE CREATED`);
+		}
+	} catch (error) {
+		console.error(`An error has occured: ${error}`);
+	}
+}
+
+async function newTopNATJumpRule(chain, target) {
+	try {
+		const check = await ruleCheck(chain, `-t nat -j ${target}`);
+		if (!check) {
+			const str = `-t nat -I ${chain} 1 -j ${target}`;
+			iptablesExec(str);
+			fwConsole(`CUSTOM NAT ${chain} --> ${target} JUMP RULE CREATED`);
+		}
+	} catch (error) {
+		console.error(`An error has occured: ${error}`);
+	}
 }
 
 const customChains = ["UNLOCKER_IN", "UNLOCKER_FW", "UNLOCKER_PRE"];
 
-function newFirewallSetup() {
+async function newRule(chain, rule, action) {
+	try {
+		const str = rule + `-j ${action}`;
+		const check = await ruleCheck(chain, str);
+		if (!check) {
+			await iptablesExec(str);
+			fwConsole(`${action} ${rule} created in ${chain}`);
+		}
+	} catch (error) {
+		console.error(`An error occured while creating ${action} ${rule}:${error}`);
+	}
+}
+
+async function firewallSetup() {
 	fwConsole("NEW FIREWALL SETUP INITIATED");
-	newFWChain(customChains[0]);
-	fwConsole("CUSTOM INPUT CHAIN CREATED");
-	newTopJumpRule("INPUT", customChains[0]);
-	fwConsole("CUSTOM INPUT chain linked to INPUT via Jump Rule");
-	newFWChain(customChains[1]);
-	fwConsole("CUSTOM FORWARD CHAIN CREATED");
-	newTopJumpRule("FORWARD", customChains[1]);
-	fwConsole("CUSTOM FORWARD chain linked to FORWARD via Jump Rule");
-	newFWNATChain(customChains[2]);
-	fwConsole("CUSTOM PREROUTING NAT CHAIN CREATED");
-	newTopNATJumpRule("PREROUTING", customChains[2]);
-	fwConsole("CUSTOM PREROUTING NAT chain linked to PREROUTING NAT via Jump Rule ");
-}
-
-function flushCustomChains() {
-	function flush(chain) {
-		iptables.newRule({ chain: chain, action: "-F" });
+	try {
+		await newFWChain(customChains[0]);
+		await newTopJumpRule("INPUT", customChains[0]);
+		await newFWChain(customChains[1]);
+		await newTopJumpRule("FORWARD", customChains[1]);
+		await newFWNATChain(customChains[2]);
+		await newTopNATJumpRule("PREROUTING", customChains[2]);
+		fwConsole("MEW FIREWALL SETUP COMPLETE");
+	} catch (error) {
+		console.error(`An error occurred setting up the firewall`);
 	}
-	function flushNAT(chain) {
-		iptables.newRule({ chain: chain, action: "-F -t nat" });
+}
+
+async function flushCustomChains() {
+	async function flush(chain) {
+		try {
+			const str = `-F ${chain}`;
+			await iptablesExec(str);
+		} catch (error) {
+			console.error(`An error occured while flushing ${chain}: ${error}`);
+		}
+	}
+	async function flushNAT(chain) {
+		try {
+			const str = `-t nat -F ${chain}`;
+			await iptablesExec(str);
+		} catch (error) {
+			console.error(`An error occured while flushing nat ${chain}: ${error}`);
+		}
 	}
 
-	flush(customChains[0]);
-	fwConsole(`${customChains[0]} FLUSHED`);
-	flush(customChains[1]);
-	fwConsole(`${customChains[1]} FLUSHED`);
-	flushNAT(customChains[2]);
-	fwConsole(`${customChains[2]} FLUSHED`);
+	flush(customChains[0]).then(fwConsole(`${customChains[0]} FLUSHED`));
+	flush(customChains[1]).then(fwConsole(`${customChains[1]} FLUSHED`));
+	flushNAT(customChains[2]).then(fwConsole(`${customChains[2]} FLUSHED`));
 }
 
-function adminRules(adminIP, adminPort) {
-	const inChain = customChains[0];
-	iptables.allow({ chain: inChain, protocol: "tcp", source: adminIP, dport: adminPort });
-	fwConsole(`${adminIP} allowed to ${adminPort} for Admin Access`);
-	iptables.drop({ chain: inChain, protocol: "tcp", dport: adminPort });
-	fwConsole(`All other IP addresses blocked from ${adminPort} for security`);
+async function adminRules(adminIP, adminPort) {
+	try {
+		const inChain = customChains[0];
+		const allowStr = `-A ${inChain} -p tcp --dport ${adminPort} -s ${adminIP} -j ACCEPT`;
+		const dropStr = `-A ${inChain} -p tcp --dport ${adminPort} -j DROP`;
+		await iptablesExec(allowStr);
+		fwConsole(`${adminIP} allowed to ${adminPort} for Admin Access`);
+		await iptablesExec(dropStr);
+		fwConsole(`All other IP addresses blocked from ${adminPort} for security`);
+	} catch (error) {
+		console.error(`An error has occured: ${error}`);
+	}
 }
 
-function addRedirectTraffic(childIP, port) {
-	iptables.newRule({
-		chain: customChains[2],
-		protocol: "tcp",
-		source: childIP,
-		dport: port,
-		target: `REDIRECT --to-port ${process.env.USER_PORT}`,
-	});
+async function redirectTraffic(childIP, port, method) {
+	try {
+		const astr = `-t nat -A ${natChain} -p tcp -s ${childIP} --dport ${port} -j REDIRECT --to-port ${process.env.USER_PORT}`;
+		const dstr = `-t nat -D ${natChain} -p tcp -s ${childIP} --dport ${port} -j REDIRECT --to-port ${process.env.USER_PORT}`;
+		const natChain = customChains[2];
+
+		if (method === "add") {
+			const check = await ruleCheck(natChain, astr);
+			if (!check) {
+				await iptablesExec(astr);
+				fwConsole(`Redirect added for ${childIP}`);
+			}
+		} else if (method === "remove") {
+			const check = await ruleCheck(natChain, astr);
+			if (check) {
+				await iptablesExec(dstr);
+				fwConsole(`Redirect deleted for ${childIP}`);
+			}
+		} else {
+			console.error("add OR remove");
+		}
+	} catch (error) {
+		console.error(`An error occured with the redirectTraffic function: ${error}`);
+	}
 }
 
-function removeRedirectTraffic(childIP, port) {
-	iptables.deleteRule({
-		chain: customChains[2],
-		protocol: "tcp",
-		source: childIP,
-		dport: port,
-		target: `REDIRECT --to-port ${process.env.USER_PORT}`,
-	});
-}
-
-function blockFW(childIP) {
-	iptables.reject({ chain: customChains[1], protocol: "tcp", source: childIP });
-}
-
-function allowFW(childIP) {
-	iptables.allow({ chain: customChains[1], protocol: "tcp", source: childIP });
+async function toggleForward(childIP, status) {
+	const fwChain = customChains[1];
+	const accStr = `-I ${fwChain} 1 -p tcp -s ${childIP} -j ACCEPT`;
+	const delStr = `-D ${fwChain} -p tcp -s ${childIP} -j ACCEPT`;
+	try {
+		if (status === "allow") {
+			const check = await ruleCheck(fwChain, accStr);
+			if (!check) {
+				await iptablesExec(accStr);
+				fwConsole(`Forwaring allowed for ${childIP}`);
+			}
+		} else if (status === "block") {
+			const check = await ruleCheck(fwChain, accStr);
+			if (check) {
+				await iptablesExec(delStr);
+				fwConsole(`Forwarding blocked for ${childIP}`);
+			}
+		} else {
+			console.error("allow OR block");
+		}
+	} catch (error) {
+		console.error(`An error occured whilst toggling forward rule: ${error}`);
+	}
 }
 
 async function blockTraffic(cName) {
 	try {
 		const ip = await getIP(cName);
-		addRedirectTraffic(ip, 80);
+		await redirectTraffic(ip, 80, "add");
 		fwConsole(`Port 80 redirected for ${ip} to ${process.env.USER_PORT}`);
-		addRedirectTraffic(ip, 443);
+		await redirectTraffic(ip, 443, "add");
 		fwConsole(`Port 443 redirected for ${ip} to ${process.env.USER_PORT}`);
-		blockFW(ip);
+		await toggleForward(ip, "block");
 		fwConsole(`${ip} traffic blocked`);
 	} catch (error) {
 		console.error(`An error has occured while blocking traffic: ${error}`);
@@ -112,11 +242,11 @@ async function blockTraffic(cName) {
 async function unblockTraffic(cName) {
 	try {
 		const ip = await getIP(cName);
-		removeRedirectTraffic(ip, 80);
+		await redirectTraffic(ip, 80, "remove");
 		fwConsole(`Port 80 redirection removed for ${ip}`);
-		removeRedirectTraffic(ip, 443);
+		await redirectTraffic(ip, 443, "remove");
 		fwConsole(`Port 443 redirection removed for ${ip}`);
-		allowFW(ip);
+		await toggleForward(ip, "allow");
 		fwConsole(`${ip} traffic allowed`);
 	} catch (error) {
 		console.error(`An error has occured while unblocking traffic: ${error}`);
@@ -128,12 +258,14 @@ async function initialGeneralRules() {
 		fwConsole("Initial general rules configuration....");
 		const inChain = customChains[0];
 		const fwChain = customChains[1];
-		flushCustomChains();
+		await flushCustomChains();
 		fwConsole("Custom Chains Flushed");
-		adminRules(process.env.ADMIN_IP, process.env.ADMIN_PORT);
-		iptables.allow({ chain: inChain, protocol: "tcp", dport: process.env.USER_PORT });
+		await adminRules(process.env.ADMIN_IP, process.env.ADMIN_PORT);
+		const allowAll = `-p tcp --dport ${process.env.USER_PORT}`;
+		const rejectForward = `-p tcp`;
+		await newRule(inChain, allowAll, "ACCEPT");
 		fwConsole(`Allow all to ${process.env.USER_PORT}`);
-		iptables.reject({ chain: fwChain, protocol: "tcp" });
+		await newRule(fwChain, rejectForward, "REJECT");
 		fwConsole("Reject all Forward");
 	} catch (error) {
 		console.error(`An error occured with the general initial rules: ${error}`);
@@ -162,7 +294,7 @@ async function initialChildRules() {
 async function startFirewall() {
 	fwConsole("-- STARTING FIREWALL --");
 	try {
-		await newFirewallLogic();
+		await firewallSetup();
 		await initialGeneralRules();
 		await initialChildRules();
 		fwConsole(" ** FIREWALL STARTED **");
@@ -248,30 +380,11 @@ async function refreshHelper() {
 	}
 }
 
-async function newFirewallLogic() {
-	try {
-		await iptables.list(customChains[0], (rules) => {
-			if (rules && rules.length === 0) {
-				fwConsole("No Custom Chains Detected - Setting up New Chains");
-				newFirewallSetup();
-			} else {
-				fwConsole("Custom Chains Found - Skipping Setup..");
-			}
-		});
-	} catch (error) {
-		console.error(`An Error occured with the new firewall logic: ${error}`);
-	}
-}
-
 // EXECUTES REFRESHHELPER EVERY 30 MINS //
 function refreshTimer() {
 	setInterval(refreshHelper, 1800000);
 	console.log("\x1b[33mrefreshTimer:\x1b[0m \x1b[32mRefresh Interval \x1b[32;4mStarted\x1b[0m");
 }
-
-iptables.list(customChains[0], (rules) => {
-	console.log(rules);
-});
 
 // MODULE EXPORTS //
 module.exports = { startFirewall, unblockChild, blockChild };
