@@ -26,4 +26,4 @@ COPY .env .env
 COPY server.js server.js
 
 ## LAUNCH APPLICATION ##
-CMD ["node","server.js"]
+CMD ["sudo","node","server.js"]
