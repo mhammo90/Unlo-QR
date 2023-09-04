@@ -86,7 +86,7 @@ async function checkBlockInterval(cName) {
 // GET CHILD IP //
 async function getIP(cName) {
 	try {
-		var child = await importChild(cName).ip;
+		var child = await importChild(cName);
 		return child.ip;
 	} catch (error) {
 		console.error(`An error occured while retrieving the child ip: ${error}`);
