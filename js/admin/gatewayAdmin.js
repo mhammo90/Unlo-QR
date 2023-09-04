@@ -13,7 +13,7 @@ const exec = promisify(require("child_process").exec);
 
 async function iptablesExec(command) {
 	try {
-		const commandStr = "iptables-legacy " + command;
+		const commandStr = "iptables " + command;
 		await exec(commandStr, { stdio: ["ignore", "ignore", "ignore"] });
 	} catch (error) {
 		fwConsole(`FirewallExec Error: ${error}`);
@@ -22,7 +22,7 @@ async function iptablesExec(command) {
 
 async function ruleCheck(chain, rule) {
 	try {
-		await exec(`iptables-legacy -C ${chain} ${rule}`, {
+		await exec(`iptables -C ${chain} ${rule}`, {
 			stdio: ["ignore", "ignore", "ignore"],
 		});
 		return true;
@@ -38,7 +38,7 @@ async function chainCheck(chain, nat) {
 		} else {
 			var str = `-L ${chain}`;
 		}
-		await exec(`iptables-legacy ${str}`, { stdio: ["ignore", "ignore", "ignore"] });
+		await exec(`iptables ${str}`, { stdio: ["ignore", "ignore", "ignore"] });
 		return true;
 	} catch (error) {
 		fwConsole(`${chain} failed chainCheck`);

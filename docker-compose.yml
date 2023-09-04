@@ -1,9 +1,12 @@
 version: "3"
 services:
-  unlo-qr:
+  app:
     build:
       context: .
     ports:
-      - 9090:9090
-      - 8899:8899
-    network_mode: host
+      - "9090:9090"
+      - "8899:8899"
+    container_name: "Unlo-qr"
+    network_mode: "host"
+    cap_add:
+      - "NET_ADMIN"

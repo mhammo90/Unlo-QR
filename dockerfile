@@ -6,7 +6,8 @@ WORKDIR /app
 # COPY NODE PACKAGES #
 COPY package*.json ./
 # INSTALL DEPENDENCIES #
-RUN npm install
+RUN npm ci
+RUN apt-get update -y && apt-get install -y iptables
 
 ## CUSTOM APPLICATION DATA AND FILES ##
 # CREATE EMPTY DATA DIRS #
@@ -26,4 +27,5 @@ COPY .env .env
 COPY server.js server.js
 
 ## LAUNCH APPLICATION ##
-CMD ["sudo","node","server.js"]
+USER 0
+CMD ["npm","start","main"]
