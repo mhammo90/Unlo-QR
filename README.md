@@ -32,11 +32,10 @@ The project is developed using an agile approach, with a focus on incremental de
 
 ## Usage
 
-1. change 'example.env' to '.env' and amend the variables if neccessary
-2. Run `docker build -t unlo-qr .` to build the required docker image
-3. Run `docker run -p <userPort>:<userPort> -p <adminPort>:<adminPort> -d unlo-qr` to start the application and map the ports to the host machine
-4. Access the parent interface at `http://localhost:<userPort>`
-5. Access the child interface at `http://localhost:<adminPort>`
+1. change 'example.env' to '.env' and amend the variables if neccessary (uncomment FIREWALL=true to enable full functionality)
+2. Run `docker-compose up --build ` to build and run the required docker image
+3. a. Access the parent interface at `http://localhost:<userPort>`
+   b. Access the child interface at `http://localhost:<adminPort>`
 
 ## Technologies Used
 

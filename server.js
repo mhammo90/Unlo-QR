@@ -56,14 +56,16 @@ if (process.env.HTTPS) {
 	const mainAppHTTPS = https.createServer(httpsOptions, mainApp);
 	mainAppHTTPS.listen(mainPort, serverIP, () => {
 		console.log(
-			"\x1b[33mCHILD Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${mainPort} (HTTPS)\x1b[0m`
+			"\x1b[33mCHILD Interface\x1b[0m - \x1b[32mListening on \x1b[0m" +
+				`\x1b[97mhttps:// [<server dns name>/"localhost"]:${mainPort}\x1b[0m`
 		);
 	});
 	// adminApp HTTPS LISTENING //
 	const adminAppHTTPS = https.createServer(httpsOptions, adminApp);
 	adminAppHTTPS.listen(adminPort, serverIP, () => {
 		console.log(
-			"\x1b[33mADMIN Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${adminPort} (HTTPS)\x1b[0m`
+			"\x1b[33mADMIN Interface\x1b[0m - \x1b[32mListening on \x1b[0m" +
+				`\x1b[97mhttps:// [<server dns name>/"localhost"]:${adminPort}\x1b[0m`
 		);
 	});
 }
@@ -71,12 +73,18 @@ if (process.env.HTTPS) {
 else {
 	// mainApp LISTENING //
 	mainApp.listen(mainPort, serverIP, () => {
-		console.log("\x1b[33mCHILD Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${mainPort}\x1b[0m`);
+		console.log(
+			"\x1b[33mCHILD Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" +
+				`\x1b[97mhttp:// [<server dns name>/"localhost"]:${mainPort}\x1b[0m`
+		);
 	});
 
 	// adminApp LISTENING //
 	adminApp.listen(adminPort, serverIP, () => {
-		console.log("\x1b[33mADMIN Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" + `\x1b[97;4m${adminPort}\x1b[0m`);
+		console.log(
+			"\x1b[33mADMIN Interface\x1b[0m - \x1b[32mListening on port \x1b[0m" +
+				`\x1b[97mhttp:// [<server dns name>/"localhost"]:${adminPort}\x1b[0m`
+		);
 	});
 }
 
@@ -84,7 +92,12 @@ console.log(`\x1b[33mADMIN IP:\x1b[0m \x1b[32m${process.env.ADMIN_IP}\x1b[0m`);
 
 // APP INITIALISATION //
 // REQUIRES //
-const { startFirewall } = require(relPath("./js/admin/gatewayAdmin"));
 
-// INTIALISE THE FIREWALL AND SETUP MAIN RULES //
-startFirewall();
+// INTIALISE THE FIREWALL AND SETUP MAIN RULES IF VAR SET //
+
+if (process.env.FIREWALL) {
+	const { startFirewall } = require(relPath("./js/admin/gatewayAdmin"));
+	startFirewall();
+} else {
+	console.log(`\x1b[31mFIREWALL CONFIG SKIPPED \x1b[0m -- \x1b[33mFIREWALL VAR NOT SET\x1b[0m`);
+}
